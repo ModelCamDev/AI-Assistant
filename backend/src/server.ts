@@ -2,10 +2,12 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from 'cors';
 import chatRouter from './routes/chat.route';
 import leadRouter from './routes/lead.route';
+import uploadRouter from './routes/upload.route';
 const app = express();
 // Implement cors
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Default request
 app.get('/',(req: Request, res: Response)=>{
@@ -15,6 +17,7 @@ app.get('/',(req: Request, res: Response)=>{
 // Routes
 app.use('/api/chat', chatRouter);
 app.use('/api/lead', leadRouter);
+app.use('/api/upload', uploadRouter);
 
 // 404 route handler middleware
 app.use((req: Request, res: Response, next: NextFunction)=>{
