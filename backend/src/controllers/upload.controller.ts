@@ -1,16 +1,17 @@
 import { NextFunction, Request, Response } from "express";
-import { deleteBySource, indexDocument } from "../services/rag.service";
+import { RAGService } from "../services/rag.service";
 
+const ragService = new RAGService();
 export const uploadAndIndexDocument = async (req: Request, res: Response, next: NextFunction) =>{
     try {
         const files = req.files as Express.Multer.File[];
         if (!files || files.length === 0) {
             return res.status(400).json({ message: 'No files were uploaded.' });
         }
-        // TODO: Implement RAG
+        // Index each file simultaneously
         const results = await Promise.all(files.map(async (file)=>{
             console.log('Indexing file:', file.filename);
-            const result = await indexDocument(file.path);
+            const result = await ragService.indexDocument(file.path);
             return {
                 originalName: file.originalname,
                 storedName: file.filename,
@@ -30,7 +31,7 @@ export const deleteIndexedDocument = async (req: Request, res: Response, next: N
     try {
         const { fileName } = req.params;
         if (!fileName) return res.status(400).json({ message: "File name is required." });
-        const result = await deleteBySource(fileName);
+        const result = await ragService.deleteBySource(fileName);
         if (!result) return res.status(404).json({ message: "File not found." });
         res.status(200).json({
             message: 'File deleted successfully',
