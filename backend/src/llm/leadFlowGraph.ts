@@ -72,7 +72,19 @@ Chat History:
     }
 
 
-    const updatedMessage = state.previousMessage || state.message;
+    let updatedMessage = state.previousMessage || state.message;
+    if (decisionData.decision==='rag') {
+        updatedMessage = `If the user message indicates they do not want to share their email, rephrase the message:
+"No problem if you don't want to share your email. Here is the answer to your question:"
+
+Then, answer the user's question directly and helpfully.
+
+User message: """${state.message}"""
+
+User question (if any): """${updatedMessage}"""`
+        console.log(updatedMessage);
+        
+    }
     return { ...state, message: updatedMessage, email: decisionData.email || state.email || "",  next: decisionData.decision || 'rag'}
 }
 
@@ -88,7 +100,12 @@ async function createLead (state: StateSchema){
 
     // After creating lead we'll set message as previous message
     const mockLeadId = `leadId_${Date.now()}`
-    return {...state, leadId: mockLeadId}
+    return {...state, leadId: mockLeadId, message: `If the user has shared their email, include a polite acknowledgment by rephrasing the message:
+"Thank you for sharing your email. To answer your previous question:(If User query is a question)"
+
+Then, attach this rephrased line before the generated answer to the user's question.
+
+User query: """${state.message}"""`}
 }
 
 
