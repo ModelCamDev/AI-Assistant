@@ -134,14 +134,12 @@ export class RAGService {
         // Format chat history
         const formattedChatHistory = chatHistory.map(msg=>`${msg.role==='user'?'User':'ai'} : ${msg.content}`).join('\n');
         // Generating embeddings
-        console.log("Generating embeddings...");
         const embedder = new GoogleGenerativeAIEmbeddings({
             apiKey: process.env.GEMINI_API_KEY || '',
             modelName: 'text-embedding-004'
         });
 
         // Connecting to pinecone 
-        console.log("Connecting to Pinecone...");
         const index = pinecone.Index(PINECONE_INDEX);
 
         // Creating vector store

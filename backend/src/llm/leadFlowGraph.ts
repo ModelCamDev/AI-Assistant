@@ -36,7 +36,7 @@ const model = new ChatGoogleGenerativeAI({
 
 // Define Node
 async function extractEmailNode(state: StateSchema) {
-    // console.log("LLM deciding what to will be next step:",  {message: state.message, prevMessage: state.previousMessage});
+    //
     const prompt = `
 You are a helpful assistant managing a conversation for lead generation.
 Decide the next action based on the user message. 
@@ -62,7 +62,7 @@ Chat History:
 
     // Getting rsponse from LLM to decide what to do next
     const llmResponse = await model.invoke([{ role: 'user', content: prompt }]);
-    console.log('LLM Response:', llmResponse.content);
+
 
     let decisionData;
     try {
@@ -71,21 +71,21 @@ Chat History:
         decisionData = { decision: 'rag'}
     }
 
-    console.log("LLM Decision", decisionData);
+
     const updatedMessage = state.previousMessage || state.message;
     return { ...state, message: updatedMessage, email: decisionData.email || state.email || "",  next: decisionData.decision || 'rag'}
 }
 
 async function askForEmail (state: StateSchema){
-    console.log("[askForEmail] Asking for email...");
-    console.log("State received inside ask Email", {message: state.message, prevMessage: state.previousMessage})
+
+
     const reply = "Before I proceed, could you please share your email?"
     return {...state, previousMessage: state.message, response: reply}
 }
 
 async function createLead (state: StateSchema){
-    console.log('[createLead] Creating Lead...');
-    console.log("State received inside CreateLead Node: ", {message: state.message, prevMessage: state.previousMessage});
+
+
     // After creating lead we'll set message as previous message
     const mockLeadId = `leadId_${Date.now()}`
     return {...state, leadId: mockLeadId}
@@ -93,8 +93,8 @@ async function createLead (state: StateSchema){
 
 
 async function rag (state: StateSchema){
-    console.log('[RAG] Getting Response from RAG');
-    console.log("State received inside RAG Node: ",  {message: state.message, prevMessage: state.previousMessage});
+
+
     // We'll use state.message to get data from rag
     const textResponse = await ragService.getRAGResponse(state.message, (state.chatHistory || []))
     return {...state, response: textResponse, previousMessage: ''}
@@ -102,8 +102,8 @@ async function rag (state: StateSchema){
 
 // Pre Node
 async function addUserMessage(state: StateSchema) {
-  console.log("Adding user's message at the start of flow");
-  console.log("State received at the start of Invokation: ", {message: state.message, prevMessage: state.previousMessage});
+
+
   const updatedHistory = [
     ...(state.chatHistory || []),
     { role: "user", content: state.message },
@@ -113,9 +113,6 @@ async function addUserMessage(state: StateSchema) {
 
 // Post Node
 async function addAssistantMessage(state: StateSchema) {
-  console.log("Adding assistant's response at end of flow");
-  console.log("State received at the end of Invokation: ", {message: state.message, prevMessage: state.previousMessage});
-  console.log('----------------------------------------------------------------------------')
   if (!state.response) return state; // nothing to add
   const updatedHistory = [
     ...(state.chatHistory || []),
@@ -125,37 +122,14 @@ async function addAssistantMessage(state: StateSchema) {
 }
 
 // Define Conditional checks
-function checkFirstMessage(state: StateSchema):string{
-    console.log("State received at the start of Invokation: ", state);
-    // User Entered chat, so we'll ask for email
-    if (state.isFirstMessage && !state.email && !state.leadId) {
-        console.log("First message, so sending to askEmail");
-        return 'askEmail'
-    }
-    // Not a first message but email exists, so create lead
-    if (!state.isFirstMessage && state.email && !state.leadId) {
-        console.log("Not a first message, email exists but no leadId, so creating lead");
-        return 'createLead'
-    }
-    // User don't want to provide email
-    if (!state.isFirstMessage && !state.email && !state.leadId) {
-        console.log("In second or newer messages user didn't passed email, so continuing chat");
-        return 'rag'
-    }
-    console.log("No condition satisfied, so continuing chat");
-    return 'rag';
-}
 
 function checkFlow(state: StateSchema) {
     if (!state.email && !state.leadId) {
-        console.log("-> No email, No leadId, So sendig to extractEmail")
         return "extractEmail";
     }
     if (state.email && !state.leadId) {
-        console.log('-> Email exists but no leadId, so sending to createLead')
         return "createLead";
     }
-    console.log("-> Fallback to RAG")
     return "rag";
 }
 
