@@ -158,7 +158,7 @@ export class RAGService {
         });
         const prompt = PromptTemplate.fromTemplate(`
     You are a helpful AI customer assistant developed by Modelcam Technologies Pvt. Ltd.
-    Your name is "MBot". Use the chat history and the provided context to assist the customer accurately and concisely.
+    Use the chat history and the provided context to assist the customer accurately and concisely.
 
     Chat History:
     {chatHistory}
