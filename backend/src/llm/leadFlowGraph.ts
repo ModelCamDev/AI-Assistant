@@ -2,6 +2,9 @@
 import { StateGraph , MemorySaver } from '@langchain/langgraph';
 import { z } from 'zod';
 import { RAGService } from '../services/rag.service'
+import leadService, {LeadInput} from "../services/lead.service";
+import conversationService, { UpdateConversationInput, IMessage } from "../services/conversation.service";
+import { Types } from "mongoose";
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 const ragService = new RAGService();
 interface StateSchema {
@@ -12,6 +15,7 @@ interface StateSchema {
     email?: string;
     response?: string;
     leadId?: string;
+    conversationId?: string;
     next?:string;
 }
 // State Schema
@@ -23,6 +27,7 @@ const ChatState = z.object({
     email: z.string().optional(),
     response: z.string().optional(),
     leadId: z.string().optional(),
+    conversationId: z.string().optional(),
     next: z.string().optional(),
 })
 
@@ -81,9 +86,7 @@ Then, answer the user's question directly and helpfully.
 
 User message: """${state.message}"""
 
-User question (if any): """${updatedMessage}"""`
-        console.log(updatedMessage);
-        
+User question (if any): """${updatedMessage}"""` 
     }
     return { ...state, message: updatedMessage, email: decisionData.email || state.email || "",  next: decisionData.decision || 'rag'}
 }
@@ -96,16 +99,34 @@ async function askForEmail (state: StateSchema){
 }
 
 async function createLead (state: StateSchema){
+    // If no email, nothing to do
+    if (!state.email) return state;
 
+    try {
+        const input: LeadInput = {
+            email: state.email,
+        };
 
-    // After creating lead we'll set message as previous message
-    const mockLeadId = `leadId_${Date.now()}`
-    return {...state, leadId: mockLeadId, message: `If the user has shared their email, include a polite acknowledgment by rephrasing the message:
-"Thank you for sharing your email. To answer your previous question:(If User query is a question)"
+        if (state.conversationId) {
+            // convert string conversationId to ObjectId for the service
+            try {
+                input.conversationId = new Types.ObjectId(state.conversationId);
+            } catch (e) {
+                // if invalid, leave undefined
+            }
+        }
 
-Then, attach this rephrased line before the generated answer to the user's question.
-
-User query: """${state.message}"""`}
+        const lead = await leadService.upsertLead(input);
+        return {
+            ...state,
+            leadId: lead._id.toString(),
+            message: `If the user has shared their email, include a polite acknowledgment by rephrasing the message:\n"Thank you for sharing your email. To answer your previous question:(only if User query is a question)"\n\nThen, attach this rephrased line before the generated answer to the user's question.\n\nUser query: """${state.message}"""`
+        };
+    } catch (err) {
+        console.error('createLead node failed to upsert lead:', err);
+        const mockLeadId = `leadId_${Date.now()}`;
+        return { ...state, leadId: mockLeadId, message: state.message };
+    }
 }
 
 
@@ -119,22 +140,45 @@ async function rag (state: StateSchema){
 
 // Pre Node
 async function addUserMessage(state: StateSchema) {
-
-
-  const updatedHistory = [
-    ...(state.chatHistory || []),
-    { role: "user", content: state.message },
-  ];
+  const newMessage: IMessage = { role: "user", content: state.message };
+  const updatedHistory = [...(state.chatHistory || []), newMessage];
+  
+  // If we have a conversation, update it with the new message
+  if (state.conversationId) {
+    try {
+      const updateData: UpdateConversationInput = {
+        conversationId: new Types.ObjectId(state.conversationId),
+        messages: [newMessage]
+      };
+      await conversationService.updateConversation(updateData);
+    } catch (err) {
+      console.error('Failed to update conversation with user message:', err);
+    }
+  }
+  
   return { ...state, chatHistory: updatedHistory };
 }
 
 // Post Node
 async function addAssistantMessage(state: StateSchema) {
   if (!state.response) return state; // nothing to add
-  const updatedHistory = [
-    ...(state.chatHistory || []),
-    { role: "ai", content: state.response },
-  ];
+  
+  const newMessage: IMessage = { role: "ai", content: state.response };
+  const updatedHistory = [...(state.chatHistory || []), newMessage];
+  
+  // If we have a conversation, update it with the assistant's response
+  if (state.conversationId) {
+    try {
+      const updateData: UpdateConversationInput = {
+        conversationId: new Types.ObjectId(state.conversationId),
+        messages: [newMessage]
+      };
+      await conversationService.updateConversation(updateData);
+    } catch (err) {
+      console.error('Failed to update conversation with assistant message:', err);
+    }
+  }
+  
   return { ...state, chatHistory: updatedHistory };
 }
 
