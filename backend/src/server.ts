@@ -3,11 +3,25 @@ import cors from 'cors';
 import chatRouter from './routes/chat.route';
 import leadRouter from './routes/lead.route';
 import uploadRouter from './routes/upload.route';
+import session from 'express-session';
 const app = express();
 // Implement cors
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Implement Session
+app.use(
+    session({
+        secret: 'secret_key',
+        resave: false,
+        saveUninitialized: true,
+        cookie:{
+            httpOnly: true,
+            secure: false
+        }
+    })
+)
 
 // Default request
 app.get('/',(req: Request, res: Response)=>{

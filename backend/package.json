@@ -27,6 +27,7 @@
     "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "express": "^5.1.0",
+    "express-session": "^1.18.2",
     "express-validator": "^7.2.1",
     "imapflow": "^1.0.199",
     "jsonwebtoken": "^9.0.2",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
+    "@types/express-session": "^1.18.2",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.9.1",
     "nodemon": "^3.1.10",
