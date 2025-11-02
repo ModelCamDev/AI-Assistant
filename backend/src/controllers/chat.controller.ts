@@ -11,7 +11,7 @@ interface CustomSession extends Session{
 export const chatWithAgent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const session = req.session as CustomSession;
-        const { query, leadId } = req.body;
+        const { query } = req.body;
 
         if (!session.conversationId) {
             // create a new conversation and assign its id to the session
@@ -19,7 +19,7 @@ export const chatWithAgent = async (req: Request, res: Response, next: NextFunct
             session.conversationId = conv._id.toString();
         }
 
-        const result = await AgentFlowGraph.invoke({ message: query, leadId: leadId || "", conversationId: session.conversationId || "" }, { configurable: { thread_id: session.conversationId || "default_conversation" } });
+        const result = await AgentFlowGraph.invoke({ message: query, conversationId: session.conversationId || "" }, { configurable: { thread_id: session.conversationId || "default_conversation" } });
         return res.status(200).json({
             message: "Graph Invoked successfully",
             result: result.response,
