@@ -8,14 +8,11 @@ export interface IMessage {
 
 export interface IConversation {
     _id: Types.ObjectId;
-    leadId?: Types.ObjectId;
     messages: IMessage[];
     createdAt: Date;
 }
 
-export interface ConversationInput {
-    leadId?: Types.ObjectId;
-}
+
 
 export interface UpdateConversationInput {
     conversationId: Types.ObjectId;
@@ -24,18 +21,16 @@ export interface UpdateConversationInput {
 
 class ConversationService {
     // Create new conversation
-    async createConversation(data?: ConversationInput): Promise<IConversation> {
+    async createConversation(messages?: IMessage[]): Promise<IConversation> {
         try {
             const newConversation = new Conversation({
-                leadId: data?.leadId,
-                messages: [] // Initialize with empty messages array
+                messages: messages || [] // Initialize with provided messages or empty array
             });
 
             const savedConversation = await newConversation.save();
             
             return {
                 _id: savedConversation._id,
-                leadId: savedConversation.leadId,
                 messages: savedConversation.messages,
                 createdAt: savedConversation.createdAt
             } as IConversation;
@@ -73,7 +68,6 @@ class ConversationService {
 
             return {
                 _id: updatedConversation._id,
-                leadId: updatedConversation.leadId,
                 messages: updatedConversation.messages,
                 createdAt: updatedConversation.createdAt
             } as IConversation;

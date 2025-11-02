@@ -1,10 +1,6 @@
 import mongoose from "mongoose";
 
 const ConversationSchema = new mongoose.Schema({
-    leadId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Lead",
-    },
     messages: [
         {
             role: {
