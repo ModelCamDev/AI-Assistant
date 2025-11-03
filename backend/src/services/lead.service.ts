@@ -113,6 +113,18 @@ class LeadService {
       throw new Error("Failed to get all leads");
     }
   }
+  // Update Lead Status
+  async updateLeadStatus(leadId: string, status: string){
+    try {
+      const updatedLead = await Lead.findByIdAndUpdate(leadId, {status: status}, {new: true});
+      return updatedLead;
+    } catch (error) {
+      if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error("Failed to update lead status");
+    }
+  }
 
 }
 
