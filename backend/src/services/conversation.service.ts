@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model";
 import { Types } from "mongoose";
+import { RAGService } from "./rag.service";
 
 export interface IMessage {
     role: "user" | "ai";
@@ -18,6 +19,8 @@ export interface UpdateConversationInput {
     conversationId: Types.ObjectId;
     messages: IMessage[];
 }
+
+const ragService = new RAGService()
 
 class ConversationService {
     // Create new conversation
@@ -77,6 +80,31 @@ class ConversationService {
             }
             throw new Error("Failed to update conversation");
         }
+    }
+
+    async summarizeConversation(conversationId: Types.ObjectId | undefined): Promise<string>{
+        try {
+            const prompt = `Write a short follow-up email summary based on the conversation history.
+Start the response directly with “As we discussed...” — do not include any title or labels like “Summary.”
+Use a friendly, professional tone as if the agent is personally following up with the user.
+Avoid referring to “the user” or “the AI”; write naturally in second person (“you”) to the recipient. Ask them to reply to this email if they are interested.`
+
+            const conversation = await Conversation.findById(conversationId);
+            if (!conversationId || !conversation) {
+                const resposne = await ragService.getRAGResponse(prompt, [{role:'user', content: 'I want to know about your company and products provided by your company.'}])
+                return resposne;
+            }
+            let allMessages = conversation.messages.map(message=>({role: message.role|| 'user', content: message.content || ''}));
+            if (allMessages.length<=0) {
+                allMessages = [...allMessages, {role:'user', content: 'I want to know about your company and products provided by your company.'}]
+            }
+            const resposne = await ragService.getRAGResponse(prompt, allMessages)
+            return resposne;
+        } catch (error) {
+            console.log("Error while summarizing conversation");
+            throw new Error('Error while summarizing conversation')
+        }
+
     }
 }
 

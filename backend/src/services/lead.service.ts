@@ -1,6 +1,8 @@
 import Lead from "../models/lead.model";
 import { Types } from "mongoose";
-
+import emailLogService from "./emailLog.service";
+import { RAGService } from "./rag.service";
+const ragService = new RAGService();
 export interface ILead {
   _id: Types.ObjectId;
   email: string;
@@ -32,7 +34,25 @@ class LeadService {
           setDefaultsOnInsert: true
         }
       );
+      // Send Welcome email to lead
+      const welcomePrompt = `Write a short, friendly, and professional welcome message for a new user or potential customer.
+The message should sound natural, as if written by a company representative, but it should not include any greeting (like “Hi,” “Hello,” “Dear [Name],”) or any closing line (like “Thanks,” “Regards,” or a signature).
 
+The message should:
+
+Begin directly with a welcoming statement (e.g., “Welcome to [Company Name]! ...”).
+
+Briefly introduce what the company does.
+
+Highlight the main products or services offered.
+
+End naturally with an encouraging or positive note (e.g., “We’re excited to help you get started” or “Looking forward to working with you”).
+
+Write it in a conversational and engaging tone — as if the agent is personally introducing the company, not as a generic description.
+Do not include any headers, footers, or labels like “Message:” or “Summary:”.`;
+      const greeting = await ragService.getRAGResponse(welcomePrompt)
+      const emailBody = `Hi there,\n\nWelcome to Modelcam\n\n${greeting}\n\nBest regards,\nModelcam Technologies pvt. ltd.`;
+      await emailLogService.sendEmailToLead({leadId: updatedLead._id.toString(), to: updatedLead.email, subject: "Welcome to Modelcam!", body: emailBody}) 
       if (!updatedLead) {
         throw new Error("Failed to upsert lead");
       }

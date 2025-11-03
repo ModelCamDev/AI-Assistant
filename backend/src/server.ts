@@ -4,6 +4,10 @@ import chatRouter from './routes/chat.route';
 import leadRouter from './routes/lead.route';
 import uploadRouter from './routes/upload.route';
 import session from 'express-session';
+
+// Cron Job
+import './cron/followupCron';
+
 const app = express();
 // Implement cors
 app.use(cors());
