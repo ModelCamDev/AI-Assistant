@@ -1,0 +1,163 @@
+/* Admin Layout Page */
+.admin-layout{
+    height: 100%;
+    width: 100%;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+/* Header */
+.admin-header{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 4rem;
+}
+.admin-header .logo{
+    font-size: 2rem;
+    font-weight: 700;
+}
+.admin-header .logo img{
+    height: 50px;
+    width: 200px;
+}
+/* Main Page */
+.dashboard-section{
+    display: flex;
+    flex: 1;
+    width: 100%;
+}
+/* Aside section */
+.dashboard-section aside{
+    width: 20%;
+    padding: 2rem 1rem;
+    background-color: #6EA944;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.dashboard-section aside a{
+    text-decoration: none;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.5rem 0.5rem;
+    border-radius: 0.5rem;
+}
+.selected{
+    background-color: #7ec143;
+}
+.unselected{
+    background-color: transparent;
+}
+/* .dashboard-section aside a:hover{
+    background-color: #7ec143;
+} */
+
+/* Dashboard */
+.dashboard-section main{
+    width: 80%;
+    padding: 2rem 4rem;
+    background-color: #e4e7ec;
+}
+
+/* Overview */
+.dashboard-heading{
+    color: #111;
+}
+.dashboard-page h1{
+    margin-bottom: 2rem;
+}
+.card-container{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+/* Overview card */
+.card{
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: white;
+    border-radius: 1rem;
+    /* box-shadow: 1px 1px 4px 0px #535353; */
+}
+.card .card-title{
+    font-size: 1rem;
+    /* color: #535353; */
+    color: #6EA944;
+}
+.card .card-value{
+    font-size: 1.7rem;
+    font-weight: 600;
+}
+
+/* Lead Page */
+.action-container{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+.lead-actions button{
+    all: unset;
+    padding: 0.2rem 0.5rem 0.3rem 0.5rem;
+    color: white;
+    background-color: #6EA944;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.lead-actions button:hover{
+    background-color: #7ec143;
+}
+.filter-action select{
+    /* all: unset; */
+    background-color: white;
+    padding: 0.2rem 0.5rem 0.3rem 0.5rem;
+    text-align: center;
+    outline: none;
+    border: none;
+    border-radius: 0.2rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+/* Lead item */
+.lead-item{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 2rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    margin-bottom: 0.7rem;
+    cursor: pointer;
+}
+.lead-item:hover{
+    box-shadow: 0px 0px 4px #535353;
+}
+.lead-list{
+    padding: 1rem;
+    max-height: 260px;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    
+}
+
+/* Lead Details Page */
+.lead-details{
+    padding: 1rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
