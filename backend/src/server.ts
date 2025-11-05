@@ -7,6 +7,7 @@ import session from 'express-session';
 
 // Cron Job
 import './cron/followupCron';
+import userRouter from "./routes/user.route";
 
 const app = express();
 // Implement cors
@@ -36,16 +37,17 @@ app.get('/',(req: Request, res: Response)=>{
 app.use('/api/chat', chatRouter);
 app.use('/api/lead', leadRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/user', userRouter);
 
 // 404 route handler middleware
 app.use((req: Request, res: Response, next: NextFunction)=>{
-    res.status(404).send("Route not found");
+    res.status(404).json({success: false ,message:"Route not found"});
 });
 
 // Global error handler middleware
 app.use((err:any, req: Request, res: Response, next: NextFunction)=>{
     console.log("Error caught in error hanf=dler middleware", err);
     
-    return res.status(500).send("Something went wrong!")
+    return res.status(500).json({ success: false, message: err.message || "Something went wrong" })
 })
 export default app;
