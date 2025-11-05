@@ -34,6 +34,11 @@ class LeadService {
           setDefaultsOnInsert: true
         }
       );
+
+      if (!updatedLead) {
+        throw new Error("Failed to upsert lead");
+      }
+
       // Send Welcome email to lead
       const welcomePrompt = `Write a short, friendly, and professional welcome message for a new user or potential customer.
 The message should sound natural, as if written by a company representative, but it should not include any greeting (like “Hi,” “Hello,” “Dear [Name],”) or any closing line (like “Thanks,” “Regards,” or a signature).
@@ -51,11 +56,9 @@ End naturally with an encouraging or positive note (e.g., “We’re excited to 
 Write it in a conversational and engaging tone — as if the agent is personally introducing the company, not as a generic description.
 Do not include any headers, footers, or labels like “Message:” or “Summary:”.`;
       const greeting = await ragService.getRAGResponse(welcomePrompt)
-      const emailBody = `Hi there,\n\nWelcome to Modelcam\n\n${greeting}\n\nBest regards,\nModelcam Technologies pvt. ltd.`;
+      const emailBody = `Hi there,\n\n${greeting}\n\nBest regards,\nModelcam Technologies pvt. ltd.`;
       await emailLogService.sendEmailToLead({leadId: updatedLead._id.toString(), to: updatedLead.email, subject: "Welcome to Modelcam!", body: emailBody}) 
-      if (!updatedLead) {
-        throw new Error("Failed to upsert lead");
-      }
+      
 
       return {
         _id: updatedLead._id,
@@ -143,6 +146,18 @@ Do not include any headers, footers, or labels like “Message:” or “Summary
                 throw error;
             }
             throw new Error("Failed to update lead status");
+    }
+  }
+  // Filter leads by status
+  async filterLeadsByStatus(status: string) {
+    try {
+      const filteredLeads = await Lead.find({ status });
+      return filteredLeads
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Failed to update lead status");
     }
   }
 

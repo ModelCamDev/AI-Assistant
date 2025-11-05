@@ -23,6 +23,7 @@
     "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "chromadb": "^3.0.17",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
@@ -42,6 +43,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/express-session": "^1.18.2",
