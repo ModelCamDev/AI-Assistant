@@ -7,6 +7,8 @@ import AdminLayout from './layouts/AdminLayout'
 import DashboardHome from './pages/Admin/DashboardHome'
 import Leads from './pages/Admin/Leads'
 import LeadsDetails from './pages/Admin/LeadDetails'
+import AdminLogin from './pages/Admin/AdminLogin'
+import AdminProtectedRoute from './components/Admin/AdminProtectedRoute'
 
 function App() {
 
@@ -19,11 +21,12 @@ function App() {
       </Route>
       {/* Admin Route */}
       <Route path='/admin' element={<AdminLayout />}>
-        <Route index element={<DashboardHome />} />
-        <Route path='leads' element={<Leads />} >
-        </Route>
-          <Route path='lead-details' element={<LeadsDetails />}/>
-        <Route path='employees' element={<DashboardHome />} />
+        <Route index element={<AdminProtectedRoute><DashboardHome /></AdminProtectedRoute>} />
+        <Route path='leads' element={<AdminProtectedRoute><Leads /> </AdminProtectedRoute> }/>
+        <Route path='lead-details' element={<AdminProtectedRoute><LeadsDetails /></AdminProtectedRoute> }/>
+        <Route path='employees' element={<AdminProtectedRoute><DashboardHome /> </AdminProtectedRoute> }/>
+        <Route path='login' element={<AdminLogin />}/>
+        <Route path='register' element={<AdminLogin />}/>
       </Route>
       </Routes>
    </Router>
