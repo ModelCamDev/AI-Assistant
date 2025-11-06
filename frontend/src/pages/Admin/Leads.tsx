@@ -1,7 +1,8 @@
 import LeadItem from "../../components/Admin/LeadItem"
+import { useAppSelector } from "../../redux/app/hooks"
 
 function Leads() {
-
+    const {leads} = useAppSelector((state)=>state.lead)
   return (
     <div className="dashboard-page">
         <h1>Leads</h1>
@@ -20,12 +21,7 @@ function Leads() {
             </div>
         </div>
         <div className="lead-list">
-            <LeadItem email="aditya@example.com" status="converted"/>
-            <LeadItem email="aditya@example.com" status="converted"/>
-            <LeadItem email="aditya@example.com" status="converted"/>
-            <LeadItem email="aditya@example.com" status="converted"/>
-            <LeadItem email="aditya@example.com" status="converted"/>
-            <LeadItem email="aditya@example.com" status="converted"/>
+            {leads.map(lead=><LeadItem key={lead._id} _id={lead._id} email={lead.email} status={lead.status}/>)}
         </div>
     </div>
   )
