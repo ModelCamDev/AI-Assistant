@@ -1,29 +1,53 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import { adminLoginThunk } from "../thunks/adminThunk";
 
-interface AdminState{
+interface AdminState {
     isLoggedIn: boolean;
-    email: string | null;
+    admin: {
+        email: string;
+        id: string;
+        role: 'user' | 'admin';
+    } | null;
+    token: string | null;
+    loading: boolean;
+    error: string | null;
 }
 
 const initialState: AdminState = {
     isLoggedIn: false,
-    email: null
+    admin: null,
+    token: null,
+    loading: false,
+    error: null,
 }
 
 const adminSlice = createSlice({
     name:'admin',
     initialState,
     reducers: {
-        loginAdmin: (state, action:PayloadAction<{email: string}>)=>{
-            state.isLoggedIn = true;
-            state.email = action.payload.email;
-        },
-        logoutAdmin: (state)=>{
+        logoutAdmin: (state) => {
             state.isLoggedIn = false;
-            state.email = null;
+            state.admin = null;
+            state.token = null;
         }
+    },
+    extraReducers(builder) {
+        builder.addCase(adminLoginThunk.pending, (state)=>{
+            state.loading = true;
+            state.error = null;
+        })
+        .addCase(adminLoginThunk.fulfilled,(state, action)=>{
+            state.loading = false;
+            state.isLoggedIn = true;
+            state.admin = action.payload.admin
+            state.token = action.payload.token
+        })
+        .addCase(adminLoginThunk.rejected,(state, action)=>{
+            state.loading = false;
+            state.error = action.payload || 'Login FAILED'
+        })
     }
 })
 
-export const {loginAdmin, logoutAdmin} = adminSlice.actions;
+export const {logoutAdmin} = adminSlice.actions;
 export default adminSlice.reducer;

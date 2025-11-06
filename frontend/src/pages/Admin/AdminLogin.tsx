@@ -1,15 +1,17 @@
 import type React from "react"
 import { useAppDispatch } from "../../redux/app/hooks"
-import { loginAdmin } from "../../redux/slices/adminSlice";
 import { useNavigate } from "react-router-dom";
+import { adminLoginThunk } from "../../redux/thunks/adminThunk";
 
 const AdminLogin = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-   const handleOnSubmit = (e: React.FormEvent)=>{
+   const handleOnSubmit = async (e: React.FormEvent)=>{
         e.preventDefault()
-        dispatch(loginAdmin({email: 'aditya@gmail.com'}))
-        navigate('/admin')
+        const result = await dispatch(adminLoginThunk({email: 'aditya@example.com', password: 'Aditya'}))
+        if (adminLoginThunk.fulfilled.match(result)) {
+          navigate('/admin')
+        }
    }
   return (
     <div className="dashboard-page">
