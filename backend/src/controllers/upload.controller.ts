@@ -1,15 +1,21 @@
 import { NextFunction, Request, Response } from "express";
 import { RAGService } from "../services/rag.service";
+import documentService from "../services/document.service";
 
 const ragService = new RAGService();
 export const uploadAndIndexDocument = async (req: Request, res: Response, next: NextFunction) =>{
     try {
         const files = req.files as Express.Multer.File[];
+        const id = req.user?.id;
+        if (!id) {
+            throw new Error("Unauthorized!")
+        }
         if (!files || files.length === 0) {
             return res.status(400).json({ message: 'No files were uploaded.' });
         }
         // Index each file simultaneously
         const results = await Promise.all(files.map(async (file)=>{
+            await documentService.createDocument(id, file);
             console.log('Indexing file:', file.filename);
             const result = await ragService.indexDocument(file.path);
             return {
@@ -33,11 +39,24 @@ export const deleteIndexedDocument = async (req: Request, res: Response, next: N
         if (!fileName) return res.status(400).json({ message: "File name is required." });
         const result = await ragService.deleteBySource(fileName);
         if (!result) return res.status(404).json({ message: "File not found." });
+        await documentService.deleteDocumentByName(fileName);
         res.status(200).json({
             message: 'File deleted successfully',
             fileName
         });
     } catch (error: any) {
+        next(error);
+    }
+}
+
+export const getUploadedDocuments = async (req: Request, res: Response, next: NextFunction) =>{
+    try {
+        const documents = await documentService.getAllDocuments();
+        res.status(200).json({
+            message: 'Documents fetched successfully',
+            documents
+        });
+    } catch (error) {
         next(error);
     }
 }
