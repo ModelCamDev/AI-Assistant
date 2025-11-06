@@ -5,7 +5,8 @@ import emailLogService from '../services/emailLog.service';
 import conversationService from '../services/conversation.service';
 
 // Schedule the cron job to run every day at 9:00 AM
-cron.schedule("* * * * *", async () => {
+// Minute(0-59) | Hour(0-23) | Day(1-31) | Month(1-12) | Weekday(0-7)
+cron.schedule("0 * * * *", async () => {
   try {
     console.log("---------------------------------------------");
     
