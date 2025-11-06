@@ -10,6 +10,7 @@ import LeadsDetails from './pages/Admin/LeadDetails'
 import AdminLogin from './pages/Admin/AdminLogin'
 import AdminProtectedRoute from './components/Admin/AdminProtectedRoute'
 import { ToastContainer } from 'react-toastify';
+import Dataset from './pages/Admin/Dataset'
 
 function App() {
 
@@ -26,7 +27,8 @@ function App() {
             <Route index element={<AdminProtectedRoute><DashboardHome /></AdminProtectedRoute>} />
             <Route path='leads' element={<AdminProtectedRoute><Leads /> </AdminProtectedRoute>} />
             <Route path='lead-details' element={<AdminProtectedRoute><LeadsDetails /></AdminProtectedRoute>} />
-            <Route path='employees' element={<AdminProtectedRoute><DashboardHome /> </AdminProtectedRoute>} />
+            <Route path='dataset' element={<AdminProtectedRoute><Dataset /> </AdminProtectedRoute>} />
+            <Route path='dataset/upload' element={<AdminProtectedRoute><Dataset /></AdminProtectedRoute>} />
             <Route path='login' element={<AdminLogin />} />
             <Route path='register' element={<AdminLogin />} />
           </Route>

@@ -15,7 +15,7 @@ function Sidebar() {
     <div className="sidebar-items-list">
     <NavLink to={'/admin'} end className={({isActive})=> isActive ? 'selected': 'unselected'}><FaGrip size={20} style={{ verticalAlign: "middle", marginRight: '5px' }}/>Overview</NavLink>
     <NavLink to={'leads'} className={({isActive})=> isActive ? 'selected': 'unselected'}><FaUserGroup size={20} style={{ verticalAlign: "middle", marginRight: '5px' }}/>Leads</NavLink>
-    <NavLink to={'employees'} className={({isActive})=> isActive ? 'selected': 'unselected'}> <FaFileArrowUp size={20} style={{ verticalAlign: "middle", marginRight: '5px' }}/> Documents</NavLink>
+    <NavLink to={'dataset'} className={({isActive})=> isActive ? 'selected': 'unselected'}> <FaFileArrowUp size={20} style={{ verticalAlign: "middle", marginRight: '5px' }}/> Dataset</NavLink>
     </div>
     <button onClick={handleLogout} className="logout">{isLoggedIn?<><FaArrowRightFromBracket size={20} style={{ verticalAlign: "middle", marginRight: '5px' }} />Logout</>:<><FaArrowRightToBracket size={20} style={{ verticalAlign: "middle", marginRight: '5px' }}/>Login</>}</button>
     </>
