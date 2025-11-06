@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../api/axiosInstance";
+import { toast } from "react-toastify";
 
 interface AdminLoginResponse {
     admin: {
@@ -26,25 +27,24 @@ interface RegisterCredentials{
 }
 export const adminLoginThunk = createAsyncThunk<AdminLoginResponse, LoginCredentials, {rejectValue: string}>('admin/login',async (credentials, {rejectWithValue})=>{
     try {
-        console.log('Credentials recieved inside thunk:', credentials);
         const {data} = await axiosInstance.post('/api/user/login', credentials);
-        console.log("Data received:", data);
         const {_id:id, email, role} = data.user;
+        toast.success("You've successfully logged in")
         return {admin: {id , email, role}, token: data.token} as AdminLoginResponse;
-    } catch (error) {
+    } catch (error: any) {
+        toast.error(error.response?.data?.message || "Unable to login, something went wrong")
       return rejectWithValue("Login failed");
     }
 })
 
 export const adminRegisterThunk = createAsyncThunk<AdminRegisterResponse, RegisterCredentials, {rejectValue: string}>('admin/register',async (credentials, {rejectWithValue})=>{
     try {
-        console.log('Credentials recieved inside thunk:', credentials);
         const {data} = await axiosInstance.post('/api/user/register', credentials);
-        console.log("Data received:", data);
-        
+        toast.success("You've successfully registered, kindly login to continue")
         const {_id:id, email, role} = data.user;
         return {id , email, role} as AdminRegisterResponse;
-    } catch (error) {
+    } catch (error: any) {
+        toast.error(error.response?.data?.message || "Unable to login, something went wrong")
       return rejectWithValue("Registration failed");
     }
 })

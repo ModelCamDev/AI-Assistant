@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { adminLoginThunk } from "../thunks/adminThunk";
+import { toast } from "react-toastify";
 
 interface AdminState {
     isLoggedIn: boolean;
@@ -29,6 +30,7 @@ const adminSlice = createSlice({
             state.isLoggedIn = false;
             state.admin = null;
             state.token = null;
+            toast.success("You've been logged out!")
         }
     },
     extraReducers(builder) {
