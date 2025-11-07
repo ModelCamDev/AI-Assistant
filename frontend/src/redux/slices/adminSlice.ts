@@ -9,15 +9,13 @@ interface AdminState {
         id: string;
         role: 'user' | 'admin';
     } | null;
-    token: string | null;
     loading: boolean;
     error: string | null;
 }
 
 const initialState: AdminState = {
-    isLoggedIn: false,
+    isLoggedIn: !!localStorage.getItem('token'),
     admin: null,
-    token: null,
     loading: false,
     error: null,
 }
@@ -29,7 +27,7 @@ const adminSlice = createSlice({
         logoutAdmin: (state) => {
             state.isLoggedIn = false;
             state.admin = null;
-            state.token = null;
+            localStorage.removeItem('token')
             toast.success("You've been logged out!")
         }
     },
@@ -42,7 +40,6 @@ const adminSlice = createSlice({
             state.loading = false;
             state.isLoggedIn = true;
             state.admin = action.payload.admin
-            state.token = action.payload.token
         })
         .addCase(adminLoginThunk.rejected,(state, action)=>{
             state.loading = false;

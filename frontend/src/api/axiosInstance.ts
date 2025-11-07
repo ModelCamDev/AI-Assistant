@@ -4,11 +4,12 @@ const axiosInstance = axios.create({
     baseURL: 'http://localhost:3000',
     headers: {
         'Content-Type': 'application/json'
-    }
+    },
+    withCredentials: true
 })
 
 axiosInstance.interceptors.request.use((config)=>{
-    const token = sessionStorage.getItem("token"); // temporary store if needed
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
