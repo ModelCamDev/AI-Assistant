@@ -77,6 +77,11 @@
 } */
 
 /* Dashboard */
+.dashboard-page{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
 .dashboard-section main{
     width: 80%;
     padding: 2rem 4rem;
@@ -224,10 +229,7 @@
 .dataset-head h1{
     margin-bottom: 0;
 }
-.upload-container{
-    background-color: white;
-    padding: 0.5rem 2rem;
-}
+
 #file-upload{
     display: none;
 }
@@ -256,4 +258,87 @@
 }
 .document-list-item span:last-child{
     justify-self: end
+}
+
+/* Upload Page */
+.upload-section{
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+.upload-input-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    background-color: white;
+    padding: 1rem;
+    flex: 1;
+    border-radius: 0.5rem;
+}
+#file-input{
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+.file-input-label{
+    width: 100%;
+    flex: 1;
+    padding: 3rem 1rem;
+    color: #535353;
+    border: 1px dashed #535353;
+    border-radius: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.upload-input-container button{
+    all: unset;
+    padding: 0.5rem 1rem;
+    color: white;
+    background-color: #6EA944;
+    border-radius: 0.2rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.upload-input-container button:hover{
+    background-color: #7ec143;
+}
+
+.upload-list{
+    height: 100%;
+    background-color: white;
+    border-radius: 0.5rem;
+    flex: 1;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: scroll;
+    scrollbar-width: none;
+}
+.file-list-item{
+    font-size: 0.8rem;
+    background-color: #e4e7ec;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.2rem;
+}
+.file-list-item button{
+    all: unset;
+    padding: 0.1rem;
+    aspect-ratio: 1;
+    color: red;
+    cursor: pointer;
 }
