@@ -1,6 +1,24 @@
 import { NavLink } from "react-router-dom"
-
+import DocumentListItem from "../../components/Admin/DocumentListItem"
+import { useState } from "react"
+const docList = [
+        {fileName:"FileName", fileType:"application/pdf"},
+        {fileName:"FileName", fileType:"application/pdf"},
+        {fileName:"FileName", fileType:"application/pdf"},
+        {fileName:"FileName", fileType:"application/pdf"},
+        {fileName:"FileName", fileType:"application/pdf"},
+        {fileName:"FileName", fileType:"application/pdf"},
+        {fileName:"FileName", fileType:"application/pdf"},
+        {fileName:"FileName", fileType:"application/pdf"},
+        {fileName:"FileName", fileType:"application/pdf"}
+    ]
 const Dataset = () => {
+    const [docs, setDocs] = useState<{fileName:string, fileType: string}[]>(docList);
+    const handleDeleteDocument = (index: number)=>{
+        setDocs(prevDocs=>
+            prevDocs.filter((_,idx)=>idx!=index)
+        )
+    }
     return (
         <div className="dashboard-page">
             <div className="dataset-head">
@@ -8,16 +26,7 @@ const Dataset = () => {
                 <NavLink to={'upload'} className="upload-nav">Upload Data</NavLink>
             </div>
             <div className="document-list">
-                <div className="document-list-item">
-                    <span>File name</span>
-                    <span>file/type</span>
-                    <span>delete</span>
-                </div>
-                <div className="document-list-item">
-                    <span>Document name</span>
-                    <span>file/type</span>
-                    <span>delete</span>
-                </div>
+                {docs.map((doc, idx)=><DocumentListItem key={idx} fileName={doc.fileName} fileType={doc.fileType} index={idx} handleDeleteDocument={handleDeleteDocument}/>)}
             </div>
         </div>
     )
