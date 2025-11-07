@@ -8,10 +8,12 @@ import session from 'express-session';
 // Cron Job
 import './cron/followupCron';
 import userRouter from "./routes/user.route";
+import cookieParser from "cookie-parser";
 
 const app = express();
 // Implement cors
 app.use(cors());
+app.use(cookieParser())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
