@@ -1,16 +1,15 @@
 import { useState } from "react";
+import type { Document } from "../../redux/slices/documentSlice";
 
 interface DocumentProps{
-    fileName: string;
-    fileType: string;
-    index: number;
-    handleDeleteDocument: (idx: number)=>void
+    document: Document;
+    handleDeleteDocument: (fileName: string)=>void
 }
 
-const DocumentListItem = ({fileName, fileType, index, handleDeleteDocument}: DocumentProps) => {
+const DocumentListItem = ({document, handleDeleteDocument}: DocumentProps) => {
     const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
     const handleConfirmDelete = ()=>{
-        handleDeleteDocument(index);
+        handleDeleteDocument(document.filename);
         setIsConfirmed(false)
     }
     const handleCancelDelete = ()=>{
@@ -21,9 +20,9 @@ const DocumentListItem = ({fileName, fileType, index, handleDeleteDocument}: Doc
     }
     return (
         <div className="document-list-item">
-            <span>{fileName}</span>
-            <span>{fileType}</span>
-            {isConfirmed?<span><span onClick={handleCancelDelete}>cancel</span><span onClick={handleConfirmDelete}>delete</span></span>:<span onClick={handleDelete}>delete</span>}
+            <span>{document.originalName}</span>
+            <span>{document.mimeType}</span>
+            {isConfirmed?<span><span onClick={handleConfirmDelete}>confirm</span><span onClick={handleCancelDelete}>cancel</span></span>:<span onClick={handleDelete}>delete</span>}
         </div>
     )
 }

@@ -1,23 +1,18 @@
 import { NavLink } from "react-router-dom"
 import DocumentListItem from "../../components/Admin/DocumentListItem"
-import { useState } from "react"
-const docList = [
-        {fileName:"FileName", fileType:"application/pdf"},
-        {fileName:"FileName", fileType:"application/pdf"},
-        {fileName:"FileName", fileType:"application/pdf"},
-        {fileName:"FileName", fileType:"application/pdf"},
-        {fileName:"FileName", fileType:"application/pdf"},
-        {fileName:"FileName", fileType:"application/pdf"},
-        {fileName:"FileName", fileType:"application/pdf"},
-        {fileName:"FileName", fileType:"application/pdf"},
-        {fileName:"FileName", fileType:"application/pdf"}
-    ]
+import { useEffect } from "react"
+import { useAppDispatch, useAppSelector } from "../../redux/app/hooks"
+import { deleteDocumentsThunk, fetchDocumentsThunk } from "../../redux/thunks/documentThunk"
+
 const Dataset = () => {
-    const [docs, setDocs] = useState<{fileName:string, fileType: string}[]>(docList);
-    const handleDeleteDocument = (index: number)=>{
-        setDocs(prevDocs=>
-            prevDocs.filter((_,idx)=>idx!=index)
-        )
+    const dispatch = useAppDispatch();
+    const {documents} = useAppSelector((state)=>state.document);
+
+    useEffect(()=>{
+        dispatch(fetchDocumentsThunk());
+    },[])
+    const handleDeleteDocument = async(fileName: string)=>{
+        await dispatch(deleteDocumentsThunk(fileName))
     }
     return (
         <div className="dashboard-page">
@@ -26,7 +21,7 @@ const Dataset = () => {
                 <NavLink to={'upload'} className="upload-nav">Upload Data</NavLink>
             </div>
             <div className="document-list">
-                {docs.map((doc, idx)=><DocumentListItem key={idx} fileName={doc.fileName} fileType={doc.fileType} index={idx} handleDeleteDocument={handleDeleteDocument}/>)}
+                {documents.map((doc, idx)=><DocumentListItem key={idx} document={doc} handleDeleteDocument={handleDeleteDocument}/>)}
             </div>
         </div>
     )

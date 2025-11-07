@@ -1,12 +1,19 @@
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { FaX } from "react-icons/fa6";
 import { toast } from "react-toastify";
+import { useAppDispatch } from "../../redux/app/hooks";
+import { uploadDocumentsThunk } from "../../redux/thunks/documentThunk";
 
 const UploadDataset = () => {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-
+    const inputUploadRef = useRef<HTMLInputElement>(null);
+    const dispatch = useAppDispatch();
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
+        console.log("Inside onchange");
+        
         if (e.target.files) {
+            console.log("Found file");
+            
             setSelectedFiles(Array.from(e.target.files));
         }
     }
@@ -15,12 +22,15 @@ const UploadDataset = () => {
             prevFiles.filter((_,idx)=>idx!=index)
         )
     }
-    const handleUploadDataset = ()=>{
+    const handleUploadDataset = async()=>{
         if(!selectedFiles.length){
             toast.error("Please select at least one file.")
         }else{
-            toast.success("Files uploaded successfully")
+            await dispatch(uploadDocumentsThunk(selectedFiles));
             setSelectedFiles([])
+            if (inputUploadRef.current) {
+                inputUploadRef.current.value='';
+            }
         }
     }
     return (
@@ -31,6 +41,7 @@ const UploadDataset = () => {
                     <label className="file-input-label" htmlFor="file-input">
                         Select Files
                         <input 
+                        ref={inputUploadRef}
                         type="file" 
                         accept="application/pdf, .txt" 
                         multiple id="file-input"
