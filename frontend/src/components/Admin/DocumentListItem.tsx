@@ -21,8 +21,15 @@ const DocumentListItem = ({document, handleDeleteDocument}: DocumentProps) => {
     return (
         <div className="document-list-item">
             <span>{document.originalName}</span>
-            <span>{document.mimeType}</span>
-            {isConfirmed?<span><span onClick={handleConfirmDelete}>confirm</span><span onClick={handleCancelDelete}>cancel</span></span>:<span onClick={handleDelete}>delete</span>}
+            <span className="file-type">{document.mimeType?.split('/')[1] || "Unknown"}</span>
+            {
+            isConfirmed?
+            <span className="document-action-container">
+                <span className="delete-document" onClick={handleConfirmDelete}>Confirm</span>
+                <span className="cancel-delete-document" onClick={handleCancelDelete}>Cancel</span>
+            </span>:
+            <span className="delete-document" onClick={handleDelete}>Delete</span>
+            }
         </div>
     )
 }

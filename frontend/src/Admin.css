@@ -256,11 +256,40 @@
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
     display: grid;
-    grid-template-columns: 3fr 1fr 1fr;
+    grid-template-columns: 4fr 1fr 2fr;
     background-color: white;
 }
 .document-list-item span:last-child{
-    justify-self: end
+    justify-self: end;
+    align-self: center;
+}
+.document-list-item .file-type{
+    color: #a1a1a1;
+    text-align: end;
+    text-transform: uppercase;
+}
+.document-action-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.delete-document{
+    background-color: red;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.2rem;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+.cancel-delete-document{
+    background-color: #535353;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.2rem;
+    font-size: 0.7rem;
+    cursor: pointer;
 }
 
 /* Upload Page */
