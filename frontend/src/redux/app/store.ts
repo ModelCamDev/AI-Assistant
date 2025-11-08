@@ -2,12 +2,13 @@ import { configureStore } from "@reduxjs/toolkit";
 import adminReducer from "./../slices/adminSlice";
 import leadReducer from './../slices/leadSlice';
 import documentReducer from './../slices/documentSlice';
-
+import chatReducer from './../slices/chatSlice';
 export const store = configureStore({
     reducer: {
         admin: adminReducer,
         lead: leadReducer,
-        document: documentReducer
+        document: documentReducer,
+        chat: chatReducer
     }
 })
 

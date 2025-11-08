@@ -169,6 +169,7 @@
     padding: 0.5rem 0;
 }
 .user-message{
+    max-width: 80%;
     padding: 0.5rem;
     border-radius: 0.5rem;
     background-color: #6EA944;
@@ -177,6 +178,7 @@
     font-size: 0.8rem;
 }
 .ai-message{
+    max-width: 90%;
     padding: 0.5rem;
     border-radius: 0.5rem;
     background-color: white;
@@ -213,6 +215,10 @@
 .input-form div:first-child, .input-form input:first-child{
     flex-grow: 1;
 } 
+.input-form .chat-button:disabled{
+    background-color: #4c5153;
+    cursor: not-allowed;
+}
 .query-input{
     all: unset;
     background-color: #ffffff;
@@ -221,4 +227,19 @@
     border: 1px solid #c5c5c5;
     font-size: 0.8rem;
     
+}
+
+/* Loading Component */
+.loading{
+    font-weight: 600;
+    color: #4c5153;
+    animation: blink 0.5s ease-in-out infinite alternate;
+}
+@keyframes blink {
+    from{
+        opacity: 0;
+    }
+    to{
+        opacity: 1;
+    }
 }
