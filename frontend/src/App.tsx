@@ -1,8 +1,8 @@
 import './App.css'
+import './User.css'
 import './Admin.css'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import UserLayout from './layouts/UserLayout'
-import Chat from './pages/Chat'
 import AdminLayout from './layouts/AdminLayout'
 import DashboardHome from './pages/Admin/DashboardHome'
 import Leads from './pages/Admin/Leads'
@@ -12,6 +12,7 @@ import AdminProtectedRoute from './components/Admin/AdminProtectedRoute'
 import { ToastContainer } from 'react-toastify';
 import Dataset from './pages/Admin/Dataset'
 import UploadDataset from './pages/Admin/UploadDataset'
+import DemoPage from './pages/DemoPage'
 
 function App() {
 
@@ -21,7 +22,7 @@ function App() {
         <Routes>
           {/* User Routes */}
           <Route path='/' element={<UserLayout />}>
-            <Route index element={<Chat />} />
+            <Route index element={<DemoPage />} />
           </Route>
           {/* Admin Route */}
           <Route path='/admin' element={<AdminLayout />}>
