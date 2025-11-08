@@ -216,7 +216,7 @@
     flex-grow: 1;
 } 
 .input-form .chat-button:disabled{
-    background-color: #4c5153;
+    background-color: #c5c5c5;
     cursor: not-allowed;
 }
 .query-input{
