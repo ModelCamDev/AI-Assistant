@@ -228,7 +228,9 @@
     font-size: 0.8rem;
     
 }
-
+.audio-wave{
+    text-align: center;
+}
 /* Loading Component */
 .loading{
     font-weight: 600;
