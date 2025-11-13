@@ -344,7 +344,10 @@
 .upload-input-container button:hover{
     background-color: #7ec143;
 }
-
+.upload-input-container button:disabled{
+    background-color: #c5c5c5;
+    cursor: not-allowed;
+}
 .upload-list{
     height: 100%;
     background-color: white;

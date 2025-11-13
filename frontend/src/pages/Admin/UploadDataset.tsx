@@ -1,10 +1,11 @@
 import React, { useRef, useState } from "react"
 import { FaX } from "react-icons/fa6";
 import { toast } from "react-toastify";
-import { useAppDispatch } from "../../redux/app/hooks";
+import { useAppDispatch, useAppSelector } from "../../redux/app/hooks";
 import { uploadDocumentsThunk } from "../../redux/thunks/documentThunk";
 
 const UploadDataset = () => {
+    const {loading} = useAppSelector(state => state.document)
     const [selectedFiles, setSelectedFiles] = useState<File[]>([])
     const inputUploadRef = useRef<HTMLInputElement>(null);
     const dispatch = useAppDispatch();
@@ -49,7 +50,7 @@ const UploadDataset = () => {
                         />
                     </label>
                     
-                    <button onClick={handleUploadDataset}>Upload Files</button>
+                    <button disabled={loading} onClick={handleUploadDataset}>{loading?"Uploading...":"Upload Files"}</button>
                 </div>
                 <div className="upload-list">
                     {selectedFiles && selectedFiles.map((file, idx)=> (
