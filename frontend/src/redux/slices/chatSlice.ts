@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { sendMessageThunk, sendVoiceThunk } from "../thunks/chatThunk";
+import { generateVoiceThunk, sendMessageThunk, sendVoiceThunk } from "../thunks/chatThunk";
 
 export interface ChatMessage{
     role: string;
@@ -56,7 +56,20 @@ const chatSlice = createSlice({
       .addCase(sendVoiceThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Unable to send voice message";
-      });
+      })
+    //   Get Voice thunk
+      .addCase(generateVoiceThunk.pending, (state)=>{
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(generateVoiceThunk.fulfilled, (state, action)=>{
+        state.loading = false;
+        state.messages.push({role: 'ai', content: action.payload.text})
+      })
+      .addCase(generateVoiceThunk.rejected, (state, action)=>{
+        state.loading = false;
+        state.error = action.payload || "Unable to get welcome voice message";
+      })
     },
 });
 

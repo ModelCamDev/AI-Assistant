@@ -31,3 +31,14 @@ export const sendVoiceThunk = createAsyncThunk<VoiceResponse,FormData,{ rejectVa
     );
   }
 });
+
+export const generateVoiceThunk = createAsyncThunk<{audio:string, contentType: string, text: string}, string, {rejectValue: string}>('chat/getVoice', async(text, {rejectWithValue})=>{
+  try {
+    const {data} = await axiosInstance.post('/api/chat/tts', {text: text});
+    return {audio: data.audio, contentType: data.contentType, text: text}
+  } catch (error: any) {
+    return rejectWithValue(
+      error?.response?.data?.message || "Unknown error while getting voice"
+    );
+  }
+})
