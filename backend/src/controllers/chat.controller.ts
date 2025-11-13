@@ -16,7 +16,11 @@ export const chatWithAgent = async (req: Request, res: Response, next: NextFunct
 
         if (!session.conversationId) {
             // create a new conversation and assign its id to the session
+            console.log("------------------------TEXT CHAT------------------------")
+            console.time('graphInvokation')
             const conv = await conversationService.createConversation();
+            console.timeEnd('graphInvokation')
+            console.log("------------------------------------------------")
             session.conversationId = conv._id.toString();
         }
 
@@ -44,11 +48,17 @@ export const voiceChatWithAgent = async (req: Request, res: Response, next: Next
             const conv = await conversationService.createConversation();
             session.conversationId = conv._id.toString();
         }
-        
+        console.log("-----------------------VOICE CHAT-------------------------")
+        console.time('transcribe')
         const userQuery = await transcribeAudio(req.file.buffer, req.file.originalname);
+        console.timeEnd('transcribe')
+        console.time('graphInvokation')
         const result = await AgentFlowGraph.invoke({message: userQuery, conversationId: session.conversationId}, { configurable: { thread_id: session.conversationId || "default_conversation" } });
-        // TODO: Text to speech
+        console.timeEnd('graphInvokation')
+        console.time('generateAudio')
         const audioBuffer = await generateTextToSpeech(result.response || "Unable to generate audio");
+        console.timeEnd('generateAudio')
+        console.log("------------------------------------------------")
         const audioBase64 = audioBuffer.toString('base64');
 
         return res.status(200).json({
@@ -58,6 +68,21 @@ export const voiceChatWithAgent = async (req: Request, res: Response, next: Next
             audio: audioBase64,
             contentType: "audio/mpeg",
             leadId: result.leadId,
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const generateTTS = async (req: Request, res: Response, next: NextFunction)=>{
+    const { text } = req.body;
+    try {
+        const audioBuffer = await generateTextToSpeech(text);
+        const audioBase64 = audioBuffer.toString('base64');
+        res.status(200).json({
+            message: 'Voice generated',
+            audio: audioBase64,
+            contentType: "audio/mpeg"
         })
     } catch (error) {
         next(error)
