@@ -13,7 +13,9 @@ export const transcribeAudio = async (audioBuffer: Buffer, fileName: string):Pro
         const file = await toFile(audioBuffer, webmFileName, { type: "audio/webm" })
         const transcription = await openai.audio.transcriptions.create({
             file: file,
-            model: 'whisper-1'
+            model: 'whisper-1',
+            language: 'en',
+            temperature: 0.5
         })
     
         return transcription.text;
@@ -28,7 +30,9 @@ export const generateTextToSpeech = async(text: string):Promise<Buffer>=>{
         const response = await openai.audio.speech.create({
             input: text,
             model: 'gpt-4o-mini-tts',
-            voice: 'coral'
+            voice: 'coral',
+            instructions: 'Use a polite, welcoming tone. Give helpful, concise responses, and naturally guide customers toward suitable products or services when it adds value.',
+            speed: 0.9
         });
         const audioBuffer = Buffer.from(await response.arrayBuffer());
         return audioBuffer;
