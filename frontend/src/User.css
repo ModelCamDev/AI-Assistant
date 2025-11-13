@@ -245,3 +245,33 @@
         opacity: 1;
     }
 }
+.typing-container {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      padding: 8px;
+    }
+
+    /* Each dot */
+    .typing-dot {
+      width: 8px;              /* size */
+      height: 8px;
+      border-radius: 50%;
+      background: #333;        /* color */
+      opacity: 0.2;            /* initial faint */
+      transform: translateY(0);
+      animation: jump 1s infinite ease-in-out;
+    }
+     /* Staggered delays for three dots */
+    .typing-dot:nth-child(1) { animation-delay: 0s;   }
+    .typing-dot:nth-child(2) { animation-delay: 0.15s;}
+    .typing-dot:nth-child(3) { animation-delay: 0.30s;}
+
+    /* Keyframes: fade + slight jump */
+    @keyframes jump {
+      0%   { opacity: 0.2; transform: translateY(0); }
+      20%  { opacity: 1;   transform: translateY(-6px); }
+      40%  { opacity: 0.6; transform: translateY(0); }
+      100% { opacity: 0.2; transform: translateY(0); }
+    }

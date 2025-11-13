@@ -3,7 +3,7 @@ import { LuAudioLines, LuCircleStop, LuKeyboard, LuMic, LuSendHorizontal } from 
 import { useAppDispatch, useAppSelector } from "../redux/app/hooks";
 import { toast } from "react-toastify";
 import { addLocalMessage } from "../redux/slices/chatSlice";
-import { sendMessageThunk, sendVoiceThunk } from "../redux/thunks/chatThunk";
+import { generateVoiceThunk, sendMessageThunk, sendVoiceThunk } from "../redux/thunks/chatThunk";
 import ReactMarkdown from 'react-markdown';
 import LoadingComponent from "../components/User/LoadingComponent";
 
@@ -15,10 +15,18 @@ function Chat() {
   const {messages, loading} = useAppSelector((state)=>state.chat);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunk = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // const welcomePlayedRef = useRef<boolean>(false);
 
   const dispatch = useAppDispatch();
   useEffect(()=>{
+    const hasWelcomed = sessionStorage.getItem('hasWelcomedUser')
+    console.log("hasWelcomed:", hasWelcomed);
     console.log("Chat component mounted");
+    if (!hasWelcomed) {
+      sessionStorage.setItem('hasWelcomedUser', "true");
+      handleWelcomeMessage();
+    }
     return ()=>{
       console.log("Chat component unmounted");
     }
@@ -60,6 +68,10 @@ function Chat() {
   }
   const startRecording = async ()=>{
         try {
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current = null;
+            }
             // Get permission and recieve media stream
             const stream = await navigator.mediaDevices.getUserMedia({audio: true});
 
@@ -75,7 +87,6 @@ function Chat() {
             mediaRecorder.ondataavailable = (event)=>{
                 if (event.data.size>0) audioChunk.current.push(event.data);
             }
-
             // when mediarecorder stops handle stop recording i.e. process audioChunks and male request to backend
             mediaRecorder.onstop = handleStopRecording;
 
@@ -104,12 +115,31 @@ function Chat() {
         formData.append('audio', audioBlob);
         try {
             const payload = await dispatch(sendVoiceThunk(formData)).unwrap();
-            const audio = new Audio(`data:${payload.contentType};base64,${payload.audio}`);
-            audio.play();
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current = null;
+            }
+            audioRef.current = new Audio(`data:${payload.contentType};base64,${payload.audio}`);
+            audioRef.current.play();
         } catch (error) {
             console.log("Error during voice chat");
         }
     }
+  const handleWelcomeMessage = async () => {
+    try {
+      const welcomMessage = `Hello! Welcome to Modelcam Technologies.   
+      How can I help you today?`;
+      const payload = await dispatch(generateVoiceThunk(welcomMessage)).unwrap();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      audioRef.current = new Audio(`data:${payload.contentType};base64,${payload.audio}`);
+      audioRef.current.play();
+    } catch (error) {
+      console.log("Error while playing welcome message");
+    }
+  }
 
   return (
     <div className="chat-view">
@@ -121,7 +151,11 @@ function Chat() {
             (<div className="ai-message" key={idx}><ReactMarkdown>{message.content}</ReactMarkdown></div>)
           ))
         }
-        {loading && <LoadingComponent text="Thinking..."/>}
+        {loading && <div className="typing-container">
+          <div className="typing-dot"></div>
+          <div className="typing-dot"></div>
+          <div className="typing-dot"></div>
+          </div>}
       </div>
       <div className="chat-actions">
         <button className="chat-button" onClick={()=>setIsVoiceMode(prev=>!prev)}>
@@ -131,7 +165,7 @@ function Chat() {
         isVoiceMode?
         (<div className="input-form">
           <div className="audio-wave">{isRecording && <LoadingComponent text="Listening"/>}</div>
-          <button className="chat-button" onClick={handleRecordingToggle}>{isRecording?<LuCircleStop />:<LuMic/>}</button>
+          <button className="chat-button" disabled={loading} onClick={handleRecordingToggle}>{isRecording?<LuCircleStop />:<LuMic/>}</button>
         </div>):
         (<form onSubmit={handleOnSubmit} className="input-form">
           <input type="text" value={text} onChange={handleOnChange} name="query" placeholder="Ask question" className="query-input" />
