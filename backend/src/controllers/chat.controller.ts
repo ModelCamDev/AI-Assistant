@@ -4,9 +4,12 @@ import conversationService from "../services/conversation.service";
 
 import { Session } from "express-session";
 import { generateTextToSpeech, transcribeAudio } from "../services/voice.service";
+import { graph } from "../llm/DemoFlow";
+import { Command } from "@langchain/langgraph";
 
 interface CustomSession extends Session{
-    conversationId?:string
+    conversationId?:string;
+    isInterrupted: boolean;
 }
 
 export const chatWithAgent = async (req: Request, res: Response, next: NextFunction) => {
@@ -87,4 +90,33 @@ export const generateTTS = async (req: Request, res: Response, next: NextFunctio
     } catch (error) {
         next(error)
     }
+}
+
+export const demoChat = async (req: Request, res: Response, next: NextFunction)=>{
+        try {
+            const session = req.session as CustomSession;
+            if (session.isInterrupted) {
+                const {action, email} = req.body;
+                const response = await graph.invoke(new Command({resume: {action, email}}), {configurable: {thread_id: 'conv_1'}});
+                if ((response as any).__interrupt__) {
+                    session.isInterrupted = true;
+                    return res.json({interrupt: (response as any).__interrupt__})
+                }
+                session.isInterrupted = false;
+                return res.json({messages: response.messages})
+            }
+            const { query } = req.body;
+            const response = await graph.invoke({userMessage: query},{configurable:{thread_id: 'conv_1'}})
+            console.log("Current number of messages:", response.messages.length);
+            console.log(`Current Summary: ${response.summary}`);
+            console.log('--------------------------------------------------------------------------');
+            if ((response as any).__interrupt__) {
+                session.isInterrupted = true;
+                return res.json({interrupt: (response as any)})
+            }
+            session.isInterrupted = false;
+            res.json({messages: response.messages})
+        } catch (error) {
+            next(error)
+        }
 }
