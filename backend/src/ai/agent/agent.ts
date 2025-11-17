@@ -5,7 +5,8 @@ import { createLeadTool, ragTool } from "./tools";
 // LLM Model
 export const model = new ChatOpenAI({
     model: 'gpt-4.1-mini',
-    temperature: 0.2
+    temperature: 0.2,
+    streaming: true
 })
 
 // AGENT

@@ -1,4 +1,5 @@
 import { Socket, Server} from 'socket.io';
+import { textHandler } from './handlers/textHandler';
 
 export function registerSocketHandlers(io: Server){
     io.on('connection', (socket: Socket)=>{
@@ -13,6 +14,7 @@ export function registerSocketHandlers(io: Server){
         socket.on('ping_check', ()=>{
             socket.emit('ping_response', 'pong')
         })
-        
+        // Text chat handler
+        textHandler(socket);
     })
 }
