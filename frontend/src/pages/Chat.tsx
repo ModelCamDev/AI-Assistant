@@ -6,6 +6,7 @@ import { addLocalMessage } from "../redux/slices/chatSlice";
 import { generateVoiceThunk, sendMessageThunk, sendVoiceThunk } from "../redux/thunks/chatThunk";
 import ReactMarkdown from 'react-markdown';
 import LoadingComponent from "../components/User/LoadingComponent";
+import { getSocket, initSocket } from "../sockets/socket";
 
 function Chat() {
   const [isVoiceMode, setIsVoiceMode] = useState<boolean>(true);
@@ -20,7 +21,12 @@ function Chat() {
 
   const dispatch = useAppDispatch();
   useEffect(()=>{
-    const hasWelcomed = sessionStorage.getItem('hasWelcomedUser')
+    const hasWelcomed = sessionStorage.getItem('hasWelcomedUser');
+    const socket = initSocket();
+    socket.on('ping_response', (msg)=>{
+      console.log("Recieved Ping response:", msg)
+    })
+
     console.log("hasWelcomed:", hasWelcomed);
     console.log("Chat component mounted");
     if (!hasWelcomed) {
@@ -29,6 +35,9 @@ function Chat() {
     }
     return ()=>{
       console.log("Chat component unmounted");
+      if (socket.id) {
+        socket.disconnect();
+      }
     }
   },[])
   const scrollToBottom = ()=>{
@@ -158,7 +167,11 @@ function Chat() {
           </div>}
       </div>
       <div className="chat-actions">
-        <button className="chat-button" onClick={()=>setIsVoiceMode(prev=>!prev)}>
+        <button className="chat-button" onClick={()=>{
+          const socket = getSocket();
+          socket.emit('ping_check');
+          setIsVoiceMode(prev=>!prev)
+          }}>
           {isVoiceMode?<LuKeyboard title="Text Mode" />:<LuAudioLines title="Voice Mode"/>}
         </button>
         {
