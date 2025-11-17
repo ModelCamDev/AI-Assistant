@@ -6,6 +6,7 @@ import { Session } from "express-session";
 import { generateTextToSpeech, transcribeAudio } from "../services/voice.service";
 import { graph } from "../llm/DemoFlow";
 import { Command } from "@langchain/langgraph";
+import { leadFlow } from "../ai/workflow/leadFlow";
 
 interface CustomSession extends Session{
     conversationId?:string;
@@ -94,29 +95,29 @@ export const generateTTS = async (req: Request, res: Response, next: NextFunctio
 
 export const demoChat = async (req: Request, res: Response, next: NextFunction)=>{
         try {
-            const session = req.session as CustomSession;
-            if (session.isInterrupted) {
-                const {action, email} = req.body;
-                const response = await graph.invoke(new Command({resume: {action, email}}), {configurable: {thread_id: 'conv_1'}});
-                if ((response as any).__interrupt__) {
-                    session.isInterrupted = true;
-                    return res.json({interrupt: (response as any).__interrupt__})
-                }
-                session.isInterrupted = false;
-                return res.json({messages: response.messages})
-            }
             const { query } = req.body;
-            const response = await graph.invoke({userMessage: query},{configurable:{thread_id: 'conv_1'}})
-            console.log("Current number of messages:", response.messages.length);
+            console.time('GraphInvokation')
+            const response = await leadFlow.invoke({userMessage: query},{configurable:{thread_id: 'conv_1'}});
+            console.timeEnd('GraphInvokation')
+            console.log("Current number of messages:", response.messages?.length);
             console.log(`Current Summary: ${response.summary}`);
             console.log('--------------------------------------------------------------------------');
-            if ((response as any).__interrupt__) {
-                session.isInterrupted = true;
-                return res.json({interrupt: (response as any)})
-            }
-            session.isInterrupted = false;
-            res.json({messages: response.messages})
+            return res.json({ message: response.response || "No response recieved..."})
+            // return res.json({ message: response.messages?.at(-1), interrupt: response.__interrupt__ || "No interruption" })
         } catch (error) {
             next(error)
         }
+}
+
+export const resumeChat = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { action, email } = req.body;
+        const response = await graph.invoke(new Command({ resume: { action, email } }), { configurable: { thread_id: 'conv_1' } });
+        if (response.__interrupt__) {
+            return res.json({ interrupt: response.__interrupt__ })
+        }
+        return res.json({ message: response.messages.at(-1), interrupt: response.__interrupt__ || "No interruption" })
+    } catch (error) {
+        next(error)
+    }
 }
