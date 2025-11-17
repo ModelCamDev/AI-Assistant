@@ -27,45 +27,47 @@ export const createLeadTool = tool(
     // Placeholder lead creation response
     console.log("Create lead tool called for email", email);
     let currentEmail = email?.trim();
-    if (!currentEmail) {
-      const resp = interrupt({
-        action: 'ask_email',
-        message: 'Please provide your email to continue'
-      });
-      if(!resp) return;
-      currentEmail = resp.email?.trim();
-    }
-    if (!isValidEmail(currentEmail)) {
-      const resp = interrupt({
-        action: 'invalid_email',
-        message: `"${currentEmail}" is not a valid email. PLease provide a valid email.`
-      })
-      if(!resp) return;
-      currentEmail = resp.email?.trim();
-    }
+    // if (!currentEmail) {
+    //   const resp = interrupt({
+    //     action: 'ask_email',
+    //     message: 'Please provide your email to continue'
+    //   });
+    //   if(!resp) return;
+    //   currentEmail = resp.email?.trim();
+    // }
+    // if (!isValidEmail(currentEmail)) {
+    //   const resp = interrupt({
+    //     action: 'invalid_email',
+    //     message: `"${currentEmail}" is not a valid email. PLease provide a valid email.`
+    //   })
+    //   if(!resp) return;
+    //   currentEmail = resp.email?.trim();
+    // }
 
-    const confirmation = interrupt({
-      action: 'confirm_email',
-      message: `Confirm email: "${currentEmail}". (approve / edit / cancel)`
-    });
+    // const confirmation = interrupt({
+    //   action: 'confirm_email',
+    //   message: `Confirm email: "${currentEmail}". (approve / edit / cancel)`
+    // });
 
-    if(!confirmation) return;
+    // if(!confirmation) return;
 
-    if (confirmation.action === "cancel") {
-      return "Lead creation cancelled.";
-    }
+    // if (confirmation.action === "cancel") {
+    //   return "Lead creation cancelled.";
+    // }
 
-    if (confirmation.action === "edit") {
-      const edited = confirmation.email?.trim();
-      if (!isValidEmail(edited)) {
-        return interrupt({
-          action: "invalid_email",
-          email: edited,
-          message: `"${edited}" is invalid. Please enter a valid email.`,
-        });
-      }
-      currentEmail = edited;
-    }
+    // if (confirmation.action === "edit") {
+    //   const edited = confirmation.email?.trim();
+    //   if (!isValidEmail(edited)) {
+    //     return interrupt({
+    //       action: "invalid_email",
+    //       email: edited,
+    //       message: `"${edited}" is invalid. Please enter a valid email.`,
+    //     });
+    //   }
+    //   currentEmail = edited;
+    // }
+
+    console.log("Lead Created for email", currentEmail);
     return {
       success: true,
       leadId: `lead_${Date.now()}`,
@@ -96,7 +98,9 @@ export const agent = createAgent({
     If the user has not been asked for their email yet, ask once before answering. 
     After getting response for it, answer any pending user question even if they refuse. 
     If the user provides an email normalize the email in correct format, then call create_lead. 
-    Never ask for email again once asked. 
+    Also ask for confirmation from user about detected email before creating a lead.
+    Never ask for email again once asked.
+    Never acknowledge user about lead created until user explicitly asked about it. 
     Keep replies under 60-70 words.`,
     tools: [ragTool, createLeadTool]
 })
@@ -106,6 +110,7 @@ const State = z.object({
   userMessage: z.string(),
   messages: z.array(z.object({role: z.enum(['user', 'ai']), content: z.string()})).default([]),
   summary: z.string().optional(),
+  __interrupt__: z.any().optional()
 });
 
 // Graph
@@ -121,6 +126,9 @@ export const graph = new StateGraph(State)
                         ...(state.summary?[{role: 'system', content: `summary: ${state.summary}`}]:[]), 
                         ...state.messages
                       ]});
+
+                      console.log("Agent Result:", result);
+                      
 
                     const normalizedAIMessage = {role: 'ai', content: result.messages.at(-1)?.content}
                     return { ...state, messages: [...state.messages, normalizedAIMessage]}
