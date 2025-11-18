@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { LuAudioLines, LuCircleStop, LuKeyboard, LuMic, LuSendHorizontal } from "react-icons/lu"
 import { useAppDispatch, useAppSelector } from "../redux/app/hooks";
 import { toast } from "react-toastify";
-import { addLocalMessage, startAIStreaming, updateAIStreaming } from "../redux/slices/chatSlice";
-import { generateVoiceThunk, sendMessageThunk, sendVoiceThunk } from "../redux/thunks/chatThunk";
+import { addLocalMessage, setConversationId, startAIStreaming, updateAIStreaming } from "../redux/slices/chatSlice";
 import ReactMarkdown from 'react-markdown';
 import LoadingComponent from "../components/User/LoadingComponent";
 import { getSocket, initSocket } from "../sockets/socket";
@@ -13,7 +12,7 @@ function Chat() {
   const [ isRecording, setIsRecording ] = useState(false);
   const [text, setText] = useState<string>('');
   const chatHistoryRef = useRef<HTMLDivElement>(null);
-  const {messages, loading} = useAppSelector((state)=>state.chat);
+  const {messages, loading, conversationId} = useAppSelector((state)=>state.chat);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunk = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -22,12 +21,13 @@ function Chat() {
   const dispatch = useAppDispatch();
   useEffect(()=>{
     const hasWelcomed = sessionStorage.getItem('hasWelcomedUser');
-
-    console.log("hasWelcomed:", hasWelcomed);
     console.log("Chat component mounted");
     if (!hasWelcomed) {
+      console.log('Welcomed the user first time')
       sessionStorage.setItem('hasWelcomedUser', "true");
       handleWelcomeMessage();
+    }else{
+      console.log("Already welcomed")
     }
     return ()=>{
       console.log("Chat component unmounted");
@@ -39,6 +39,12 @@ function Chat() {
     socket.on('ping_response', (msg)=>{
       console.log("Recieved Ping response:", msg)
     })
+    // Handle conversation
+    socket.on('conversation_created', (id)=>{
+      console.log("Recieved ConversationId:", id);
+      
+      dispatch(setConversationId(id))
+    })
     // Listen for ai response chunks
     let isStreaming = false;
     socket.on('agent_chunk', (token)=>{
@@ -46,9 +52,9 @@ function Chat() {
         dispatch(startAIStreaming());
         isStreaming = true;
       }
-      console.log("Whole token", token);
       dispatch(updateAIStreaming(token));
     })
+    // Streaming ended
     socket.on('agent_complete', ()=>{
       console.log('Full resposne recieved from AI')
       isStreaming = false
@@ -82,10 +88,9 @@ function Chat() {
     }
     // Emit users query to backend
     const io = getSocket();
-    io.emit('user_message', {message: text});
+    io.emit('user_message', {message: text, conversationId});
 
     dispatch(addLocalMessage({role: 'user', content: text}))
-    // dispatch(sendMessageThunk(text));
     setText('');
   }
 
@@ -147,28 +152,16 @@ function Chat() {
         const formData = new FormData();
         formData.append('audio', audioBlob);
         try {
-            const payload = await dispatch(sendVoiceThunk(formData)).unwrap();
-            if (audioRef.current) {
-              audioRef.current.pause();
-              audioRef.current = null;
-            }
-            audioRef.current = new Audio(`data:${payload.contentType};base64,${payload.audio}`);
-            audioRef.current.play();
+          // TODO: Send recorded voice
         } catch (error) {
             console.log("Error during voice chat");
         }
     }
   const handleWelcomeMessage = async () => {
     try {
-      const welcomMessage = `Hello! Welcome to Modelcam Technologies.   
-      How can I help you today?`;
-      const payload = await dispatch(generateVoiceThunk(welcomMessage)).unwrap();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      audioRef.current = new Audio(`data:${payload.contentType};base64,${payload.audio}`);
-      audioRef.current.play();
+      // TODO: Get Welcome message audio
+      // const welcomMessage = `Hello! Welcome to Modelcam Technologies.   
+      // How can I help you today?`;
     } catch (error) {
       console.log("Error while playing welcome message");
     }
