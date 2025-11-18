@@ -27,6 +27,15 @@ const chatSlice = createSlice({
         },
         clearChat: (state)=>{
             state.messages = []
+        },
+        startAIStreaming: (state)=>{
+          state.messages.push({role: 'ai', content: ''});
+        },
+        updateAIStreaming: (state, action)=>{
+          const lastmessage = state.messages[state.messages.length - 1];
+          if (lastmessage && lastmessage.role === 'ai') {
+            lastmessage.content += action.payload;
+          }
         }
     },
     extraReducers(builder) {
@@ -37,7 +46,7 @@ const chatSlice = createSlice({
         })
         .addCase(sendMessageThunk.fulfilled, (state, action)=>{
             state.loading = false;
-            state.messages.push({role:'ai', content: action.payload})
+            // state.messages.push({role:'ai', content: action.payload})
         })
         .addCase(sendMessageThunk.rejected, (state, action)=>{
             state.loading = false;
@@ -73,5 +82,5 @@ const chatSlice = createSlice({
     },
 });
 
-export const {addLocalMessage, clearChat} = chatSlice.actions;
+export const {addLocalMessage, clearChat, startAIStreaming, updateAIStreaming} = chatSlice.actions;
 export default chatSlice.reducer;

@@ -14,3 +14,8 @@ export const initializeSocket = (server: HttpServer)=>{
     registerSocketHandlers(io);
     return io;
 }
+
+export const getSocket = ()=>{
+    if (!io) throw new Error('Socket not initialized');
+    return io;
+}

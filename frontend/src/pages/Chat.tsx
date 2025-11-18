@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { LuAudioLines, LuCircleStop, LuKeyboard, LuMic, LuSendHorizontal } from "react-icons/lu"
 import { useAppDispatch, useAppSelector } from "../redux/app/hooks";
 import { toast } from "react-toastify";
-import { addLocalMessage } from "../redux/slices/chatSlice";
+import { addLocalMessage, startAIStreaming, updateAIStreaming } from "../redux/slices/chatSlice";
 import { generateVoiceThunk, sendMessageThunk, sendVoiceThunk } from "../redux/thunks/chatThunk";
 import ReactMarkdown from 'react-markdown';
 import LoadingComponent from "../components/User/LoadingComponent";
@@ -22,10 +22,6 @@ function Chat() {
   const dispatch = useAppDispatch();
   useEffect(()=>{
     const hasWelcomed = sessionStorage.getItem('hasWelcomedUser');
-    const socket = initSocket();
-    socket.on('ping_response', (msg)=>{
-      console.log("Recieved Ping response:", msg)
-    })
 
     console.log("hasWelcomed:", hasWelcomed);
     console.log("Chat component mounted");
@@ -35,6 +31,30 @@ function Chat() {
     }
     return ()=>{
       console.log("Chat component unmounted");
+    }
+  },[])
+  // Handle Socket connection
+  useEffect(()=>{
+    const socket = initSocket();
+    socket.on('ping_response', (msg)=>{
+      console.log("Recieved Ping response:", msg)
+    })
+    // Listen for ai response chunks
+    let isStreaming = false;
+    socket.on('agent_chunk', (token)=>{
+      if (!isStreaming) {
+        dispatch(startAIStreaming());
+        isStreaming = true;
+      }
+      console.log("Whole token", token);
+      dispatch(updateAIStreaming(token));
+    })
+    socket.on('agent_complete', ()=>{
+      console.log('Full resposne recieved from AI')
+      isStreaming = false
+    })
+
+    return ()=>{
       if (socket.id) {
         socket.disconnect();
       }
@@ -60,8 +80,12 @@ function Chat() {
       toast.warning('Question cannot be empty');
       return
     }
+    // Emit users query to backend
+    const io = getSocket();
+    io.emit('user_message', {message: text});
+
     dispatch(addLocalMessage({role: 'user', content: text}))
-    dispatch(sendMessageThunk(text));
+    // dispatch(sendMessageThunk(text));
     setText('');
   }
 

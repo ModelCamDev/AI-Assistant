@@ -1,13 +1,15 @@
 import z from "zod";
 import { agent, model } from "../agent/agent";
 import { MemorySaver, StateGraph } from "@langchain/langgraph";
+import { getSocket } from "../../sockets/socket";
 
 // State schema
 const State = z.object({
   userMessage: z.string(),
   messages: z.array(z.object({role: z.enum(['user', 'ai']), content: z.string()})).optional(),
   summary: z.string().optional(),
-  response: z.string().optional()
+  response: z.string().optional(),
+  socketId: z.string()
 });
 
 interface StateInputSchema{
@@ -15,6 +17,7 @@ interface StateInputSchema{
     messages?: {role:'user'|'ai', content: string}[];
     summary?: string;
     response?: string;
+    socketId: string;
 }
 
 // Nodes
@@ -24,13 +27,26 @@ async function addUserMessage(state: StateInputSchema) {
 
 async function agentNode(state: StateInputSchema) {
 
-    const result = await agent.invoke({
+    const io = getSocket();
+    let fullResponse = '';
+
+    const stream = await agent.stream({
         messages: [
             ...(state.summary ? [{ role: 'system', content: `summary: ${state.summary}` }] : []),
             ...(state.messages || [])
         ]
-    });
-    const aiResposne = result.messages.at(-1)?.content
+    },{ streamMode: 'messages'});
+    for await (const chunk of stream){
+        const [token, _ ] = chunk;
+        console.log("WHOLE TOKEN:", token.tool_calls);
+        
+        if (token.type === 'ai' && !token.tool_calls?.length) {
+            fullResponse += token.content;
+            io.to(state.socketId).emit('agent_chunk', token.content);
+        }
+    }
+    io.to(state.socketId).emit('agent_complete')
+    const aiResposne = fullResponse;
     const normalizedAIMessage = { role: 'ai', content: aiResposne }
     return { ...state, messages: [...(state.messages || []), normalizedAIMessage], response: aiResposne };
 }
