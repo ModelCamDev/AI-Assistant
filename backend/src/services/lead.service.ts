@@ -2,6 +2,7 @@ import Lead from "../models/lead.model";
 import { Types } from "mongoose";
 import emailLogService from "./emailLog.service";
 import { RAGService } from "./rag.service";
+import { generalModel } from "../ai/agent/agent";
 const ragService = new RAGService();
 export interface ILead {
   _id: Types.ObjectId;
@@ -45,18 +46,20 @@ The message should sound natural, as if written by a company representative, but
 
 The message should:
 
-Begin directly with a welcoming statement (e.g., “Welcome to [Company Name]! ...”).
-
-Briefly introduce what the company does.
+Begin directly with a welcoming statement (e.g., “Welcome to Modelcam Technologies! ...”).
 
 Highlight the main products or services offered.
 
-End naturally with an encouraging or positive note (e.g., “We’re excited to help you get started” or “Looking forward to working with you”).
+End naturally with an encouraging or positive note (e.g., “We're excited to help you get started” or “Looking forward to working with you”).
 
 Write it in a conversational and engaging tone — as if the agent is personally introducing the company, not as a generic description.
 Do not include any headers, footers, or labels like “Message:” or “Summary:”.`;
-      const greeting = await ragService.getRAGResponse(welcomePrompt)
-      const emailBody = `Hi there,\n\n${greeting}\n\nBest regards,\nModelcam Technologies pvt. ltd.`;
+      const greeting = await generalModel.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{role: 'system', content: welcomePrompt}],
+        stream: false
+      })
+      const emailBody = `Hi there,\n\n${greeting.choices[0].message.content}\n\nBest regards,\nModelcam Technologies pvt. ltd.`;
       await emailLogService.sendEmailToLead({leadId: updatedLead._id.toString(), to: updatedLead.email, subject: "Welcome to Modelcam!", body: emailBody}) 
       
 

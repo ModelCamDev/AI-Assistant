@@ -1,6 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { createAgent } from "langchain";
 import { createLeadTool, ragTool } from "./tools";
+import OpenAI from "openai";
 
 // LLM Model
 export const model = new ChatOpenAI({
@@ -9,6 +10,8 @@ export const model = new ChatOpenAI({
     streaming: true
 })
 
+export const generalModel = new OpenAI()
+
 // AGENT
 export const agent = createAgent({
     model: model,
@@ -16,8 +19,9 @@ export const agent = createAgent({
 You are a concise sales assistant. 
     Use tools: rag_tool only to get context and create_lead for lead creation. 
     Check summary and recent messages. 
-    If the user has not been asked for their email yet, ask once before answering. 
-    After getting response for it, answer any pending user question even if they refuse. 
+    If the user has not been asked for their email yet, ask once "before" answering.
+    Do not answer first and then asking for email. 
+    Just ask -> After getting response for it, answer pending user question (if any or else send normal response). 
     If the user provides an email normalize the email in correct format, then call create_lead. 
     Also ask for confirmation from user about detected email before creating a lead.
     Never ask for email again once asked.

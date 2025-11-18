@@ -9,7 +9,8 @@ const State = z.object({
   messages: z.array(z.object({role: z.enum(['user', 'ai']), content: z.string()})).optional(),
   summary: z.string().optional(),
   response: z.string().optional(),
-  socketId: z.string()
+  socketId: z.string(),
+  conversationId: z.string()
 });
 
 interface StateInputSchema{
@@ -18,6 +19,7 @@ interface StateInputSchema{
     summary?: string;
     response?: string;
     socketId: string;
+    conversationId: string;
 }
 
 // Nodes
@@ -31,16 +33,15 @@ async function agentNode(state: StateInputSchema) {
     let fullResponse = '';
 
     const stream = await agent.stream({
-        messages: [
+        messages: [ {role: 'system', content: `Current conversationId: ${state.conversationId}`},
             ...(state.summary ? [{ role: 'system', content: `summary: ${state.summary}` }] : []),
             ...(state.messages || [])
         ]
     },{ streamMode: 'messages'});
     for await (const chunk of stream){
         const [token, _ ] = chunk;
-        console.log("WHOLE TOKEN:", token.tool_calls);
-        
-        if (token.type === 'ai' && !token.tool_calls?.length) {
+        if (token.id?.startsWith('run')) continue;
+        if (token.type === 'ai') {
             fullResponse += token.content;
             io.to(state.socketId).emit('agent_chunk', token.content);
         }

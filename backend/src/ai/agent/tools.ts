@@ -4,6 +4,7 @@ import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 import { pinecone, PINECONE_INDEX, PINECONE_NAMESPACE } from '../../config/pinecone.config';
 import { PineconeStore } from '@langchain/pinecone';
 import leadService from '../../services/lead.service';
+import { Types } from 'mongoose';
 
 // RAG Tool
 export const ragTool = tool(
@@ -49,10 +50,10 @@ export const ragTool = tool(
 
 // Create Lead Tool
 export const createLeadTool = tool(
-  async ({ email }) => {
+  async ({ email, conversationId }) => {
     console.log("Create lead tool called for email", email);
     try {
-        const lead = await leadService.upsertLead({email: email});
+        const lead = await leadService.upsertLead({email: email, conversationId: new Types.ObjectId(conversationId)});
         console.log("Lead Created successfully.");
         return {
           success: true,
@@ -75,6 +76,7 @@ export const createLeadTool = tool(
     description: "Create a lead with the given email",
     schema: z.object({
       email: z.string().describe('email to create lead'),
+      conversationId: z.string().describe('conversation id of current conversation')
     }),
   }
 );
