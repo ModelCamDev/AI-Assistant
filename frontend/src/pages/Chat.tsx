@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { LuAudioLines, LuCircleStop, LuKeyboard, LuMic, LuSendHorizontal } from "react-icons/lu"
 import { useAppDispatch, useAppSelector } from "../redux/app/hooks";
 import { toast } from "react-toastify";
-import { addLocalMessage, setConversationId, startAIStreaming, updateAIStreaming } from "../redux/slices/chatSlice";
+import { addLocalMessage, addWelcomeMessage, endLiveTranscript, setConversationId, startAIStreaming, startLiveTranscript, updateAIStreaming, updateLiveTranscript } from "../redux/slices/chatSlice";
 import ReactMarkdown from 'react-markdown';
 import LoadingComponent from "../components/User/LoadingComponent";
 import { getSocket, initSocket } from "../sockets/socket";
@@ -14,35 +14,55 @@ function Chat() {
   const chatHistoryRef = useRef<HTMLDivElement>(null);
   const {messages, loading, conversationId} = useAppSelector((state)=>state.chat);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunk = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  // const welcomePlayedRef = useRef<boolean>(false);
 
+// Handle welcome message
   const dispatch = useAppDispatch();
   useEffect(()=>{
-    const hasWelcomed = sessionStorage.getItem('hasWelcomedUser');
     console.log("Chat component mounted");
-    if (!hasWelcomed) {
-      console.log('Welcomed the user first time')
-      sessionStorage.setItem('hasWelcomedUser', "true");
-      handleWelcomeMessage();
-    }else{
-      console.log("Already welcomed")
-    }
+    
+    
     return ()=>{
       console.log("Chat component unmounted");
     }
   },[])
+
   // Handle Socket connection
   useEffect(()=>{
     const socket = initSocket();
+    const welcomeMessage = `Hello! Welcome to Modelcam Technologies.   
+      How can I help you today?`;
+    const hasWelcomed = sessionStorage.getItem('hasWelcomedUser');
+    if (!hasWelcomed) {
+      console.log('Welcomed the user first time')
+      sessionStorage.setItem('hasWelcomedUser', "true");
+      socket.emit('generate_welcome_audio', {message: welcomeMessage});
+      
+    }else{
+      console.log("Already welcomed")
+    }
+    socket.on('tts:welcome', ({ audioBase64 })=>{
+      const byteString = atob(audioBase64);
+      const byteArray = new Uint8Array(byteString.length);
+      for(let i=0; i<byteString.length; i++){
+        byteArray[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([byteArray], {type: 'audio/mp3'});
+      const url = URL.createObjectURL(blob);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      audioRef.current = new Audio(url);
+      audioRef.current.play();
+      dispatch(addWelcomeMessage(welcomeMessage))
+    });
     socket.on('ping_response', (msg)=>{
       console.log("Recieved Ping response:", msg)
     })
     // Handle conversation
     socket.on('conversation_created', (id)=>{
       console.log("Recieved ConversationId:", id);
-      
       dispatch(setConversationId(id))
     })
     // Listen for ai response chunks
@@ -66,6 +86,40 @@ function Chat() {
       }
     }
   },[])
+
+  // Handle Voice Events
+  useEffect(() => {
+    const socket = getSocket();
+    socket.on("transcribe_partial", (data) => {
+      console.log("Partial Transcript:", data.text);
+      // Dispatch action to update live transcript
+      dispatch(updateLiveTranscript(data.text));
+    });
+
+    socket.on("transcribe_complete", (data) => {
+      console.log("Final Transcript:", data.text);
+      // Dispatch action to update final transcript
+      dispatch(endLiveTranscript(data.text));
+      socket.emit('user_message', {message: data.text, conversationId: data.conversationId, mode:'voice'});
+    });
+
+    socket.on('tts:complete', ({ audioBase64 })=>{
+      const byteString = atob(audioBase64);
+      const byteArray = new Uint8Array(byteString.length);
+      for(let i=0; i<byteString.length; i++){
+        byteArray[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([byteArray], {type: 'audio/mp3'});
+      const url = URL.createObjectURL(blob);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      audioRef.current = new Audio(url);
+      audioRef.current.play();
+    })
+  }, [])
+
   const scrollToBottom = ()=>{
     if (chatHistoryRef.current) {
       chatHistoryRef.current.scrollTo({
@@ -88,7 +142,7 @@ function Chat() {
     }
     // Emit users query to backend
     const io = getSocket();
-    io.emit('user_message', {message: text, conversationId});
+    io.emit('user_message', {message: text, conversationId, mode:'text'});
 
     dispatch(addLocalMessage({role: 'user', content: text}))
     setText('');
@@ -114,22 +168,37 @@ function Chat() {
             const stream = await navigator.mediaDevices.getUserMedia({audio: true});
 
             // Create new media recorder and pass media stream to it
-            const mediaRecorder = new MediaRecorder(stream);
+            const mediaRecorder = new MediaRecorder(stream, {
+              mimeType: 'audio/webm; codecs=opus'
+            });
             // Store media recorder inside its ref to start/stop it later
             mediaRecorderRef.current = mediaRecorder;
 
-            // Since we are starting recording so set audio chunks to empty array
-            audioChunk.current = [];
+            const socket = getSocket();
+            socket.emit('voice:start', {conversationId});
+
+            dispatch(startLiveTranscript());
 
             // Push recorded audio chunk into audioChunkRef array when data is available.
             mediaRecorder.ondataavailable = (event)=>{
-                if (event.data.size>0) audioChunk.current.push(event.data);
-            }
-            // when mediarecorder stops handle stop recording i.e. process audioChunks and male request to backend
-            mediaRecorder.onstop = handleStopRecording;
+                if (event.data.size>0) {
+                  const reader = new FileReader();
+
+                  reader.onloadend = ()=>{
+                    if (typeof reader.result === 'string') {
+                      const base64 = reader.result.split(",")[1];
+                      socket.emit('voice:chunk', {
+                        conversationId,
+                        audioBase64: base64
+                      });
+                    }
+                  };
+                  reader.readAsDataURL(event.data)
+                }
+            };
 
             // START RECORDING FOR USER MEDIA (Input)
-            mediaRecorder.start();
+            mediaRecorder.start(250);
             setIsRecording(true);
             console.log("Listening for User Voice...");
         } catch (error) {
@@ -137,35 +206,21 @@ function Chat() {
         }
     }
 
-  const stopRecording = ()=>{
-    if(mediaRecorderRef.current){
-            mediaRecorderRef.current.stop();
-            setIsRecording(false);
-            console.log("Stopped Listening for User Voice...");
-        }
+  const stopRecording = () => {
+    try {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+        mediaRecorderRef.current.stream.getTracks().forEach(t=>t.stop());
+        getSocket().emit('voice:stop', {conversationId});
+        mediaRecorderRef.current = null;
+        setIsRecording(false);
+        console.log("Stopped Listening for User Voice...");
+      }
+    } catch (error) {
+      console.log('Error in stopping recording:', error)
+    }
   }
 
-  const handleStopRecording = async()=>{
-        // Create Audio blob from chunks
-        const audioBlob = new Blob(audioChunk.current, {type: 'audio/webm'});
-        // Create formData
-        const formData = new FormData();
-        formData.append('audio', audioBlob);
-        try {
-          // TODO: Send recorded voice
-        } catch (error) {
-            console.log("Error during voice chat");
-        }
-    }
-  const handleWelcomeMessage = async () => {
-    try {
-      // TODO: Get Welcome message audio
-      // const welcomMessage = `Hello! Welcome to Modelcam Technologies.   
-      // How can I help you today?`;
-    } catch (error) {
-      console.log("Error while playing welcome message");
-    }
-  }
 
   return (
     <div className="chat-view">

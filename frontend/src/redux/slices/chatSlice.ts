@@ -39,9 +39,41 @@ const chatSlice = createSlice({
         },
         setConversationId: (state, action)=>{
           state.conversationId = action.payload;
+        },
+        startLiveTranscript: (state)=>{
+          const lastmessage = state.messages[state.messages.length - 1];
+          if (lastmessage && lastmessage.role === 'user') {
+            
+          }else{
+            state.messages.push({role: 'user', content: ''})
+          }
+        },
+        updateLiveTranscript: (state, action)=>{
+          const lastmessage = state.messages[state.messages.length - 1];
+          if (lastmessage && lastmessage.role === 'user') {
+            lastmessage.content += action.payload;
+          }
+        },
+        endLiveTranscript: (state, action)=>{
+          const lastmessage = state.messages[state.messages.length - 1];
+          if (lastmessage && lastmessage.role === 'user') {
+            lastmessage.content = action.payload;
+          }
+        },
+        addWelcomeMessage: (state, action)=>{
+          state.messages = [{role: 'ai', content: action.payload}]
         }
     }
 });
 
-export const {addLocalMessage, clearChat, startAIStreaming, updateAIStreaming, setConversationId} = chatSlice.actions;
+export const { addLocalMessage, 
+  clearChat, 
+  startAIStreaming, 
+  updateAIStreaming, 
+  setConversationId, 
+  startLiveTranscript, 
+  updateLiveTranscript, 
+  endLiveTranscript,
+  addWelcomeMessage
+ } = chatSlice.actions;
 export default chatSlice.reducer;
