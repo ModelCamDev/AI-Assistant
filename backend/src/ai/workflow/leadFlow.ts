@@ -6,6 +6,7 @@ import { zodResponseFormat } from 'openai/helpers/zod'
 import conversationService, { IMessage, UpdateConversationInput } from "../../services/conversation.service";
 import { Types } from "mongoose";
 import { AIMessageChunk, ToolMessage, ToolMessageChunk } from "langchain";
+import { getTextToSpeech } from "../../services/voice.service";
 
 // State schema
 const State = z.object({
@@ -17,6 +18,7 @@ const State = z.object({
   conversationId: z.string(),
   emailAsked: z.boolean().default(false),
   createdLeads: z.array(z.string()).default([]),
+  mode: z.enum(['text', 'voice']),
 });
 
 interface StateInputSchema{
@@ -28,6 +30,7 @@ interface StateInputSchema{
     conversationId: string;
     emailAsked: boolean;
     createdLeads: string[];
+    mode: 'text' | 'voice';
 }
 
 // Nodes
@@ -65,8 +68,10 @@ async function agentNode(state: StateInputSchema) {
             io.to(state.socketId).emit('agent_chunk', token.content);
         }
     }
-    
     io.to(state.socketId).emit('agent_complete')
+    if (state.mode === 'voice') {
+        getTextToSpeech(fullResponse, state.socketId);
+    }
     const aiResposne = fullResponse;
     const normalizedAIMessage = { role: 'ai', content: aiResposne }
     return { ...state, messages: [...(state.messages || []), normalizedAIMessage], response: aiResposne, createdLeads: [...(state.createdLeads || []), ...createdLeads] };

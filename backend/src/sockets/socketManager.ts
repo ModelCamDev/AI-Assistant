@@ -1,5 +1,6 @@
 import { Socket, Server} from 'socket.io';
 import { textHandler } from './handlers/textHandler';
+import { voiceHandler } from './handlers/voiceHandler';
 
 export function registerSocketHandlers(io: Server){
     io.on('connection', (socket: Socket)=>{
@@ -16,5 +17,7 @@ export function registerSocketHandlers(io: Server){
         })
         // Text chat handler
         textHandler(socket);
+        // Voice chat handler
+        voiceHandler(socket);
     })
 }
