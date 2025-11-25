@@ -3,13 +3,15 @@ import { LuAudioLines, LuCircleStop, LuKeyboard, LuMic, LuSendHorizontal } from 
 import { useAppDispatch, useAppSelector } from "../redux/app/hooks";
 import { toast } from "react-toastify";
 import { addLocalMessage, addWelcomeMessage, endLiveTranscript, setConversationId, startAIStreaming, startLiveTranscript, updateAIStreaming, updateLiveTranscript } from "../redux/slices/chatSlice";
-import ReactMarkdown from 'react-markdown';
+// import ReactMarkdown from 'react-markdown';
 import LoadingComponent from "../components/User/LoadingComponent";
 import { getSocket, initSocket } from "../sockets/socket";
 
 function Chat() {
   const [isVoiceMode, setIsVoiceMode] = useState<boolean>(true);
-  const [ isRecording, setIsRecording ] = useState(false);
+  const [ isRecording, setIsRecording ] = useState<boolean>(false);
+  const [transcribeLoading, setTranscribeLoading] = useState<boolean>(false);
+  const [responseLoading, setResponseLoading] = useState<boolean>(false);
   const [text, setText] = useState<string>('');
   const chatHistoryRef = useRef<HTMLDivElement>(null);
   const {messages, loading, conversationId} = useAppSelector((state)=>state.chat);
@@ -33,14 +35,24 @@ function Chat() {
     const welcomeMessage = `Hello! Welcome to Modelcam Technologies.   
       How can I help you today?`;
     const hasWelcomed = sessionStorage.getItem('hasWelcomedUser');
+    const savedConversationId = sessionStorage.getItem('conversationId');
     if (!hasWelcomed) {
       console.log('Welcomed the user first time')
       sessionStorage.setItem('hasWelcomedUser', "true");
-      socket.emit('generate_welcome_audio', {message: welcomeMessage});
-      
-    }else{
+      socket.emit('generate_welcome_audio', { message: welcomeMessage });
+      dispatch(startAIStreaming())
+      setResponseLoading(true);
+      if (!savedConversationId) {
+        socket.emit('conversation:init')
+      }
+    } else {
       console.log("Already welcomed")
+
+      if (savedConversationId) {
+        dispatch(setConversationId(savedConversationId))
+      }
     }
+    
     socket.on('tts:welcome', ({ audioBase64 })=>{
       const byteString = atob(audioBase64);
       const byteArray = new Uint8Array(byteString.length);
@@ -55,6 +67,7 @@ function Chat() {
       }
       audioRef.current = new Audio(url);
       audioRef.current.play();
+      setResponseLoading(false)
       dispatch(addWelcomeMessage(welcomeMessage))
     });
     socket.on('ping_response', (msg)=>{
@@ -64,12 +77,14 @@ function Chat() {
     socket.on('conversation_created', (id)=>{
       console.log("Recieved ConversationId:", id);
       dispatch(setConversationId(id))
+      sessionStorage.setItem("conversationId", id);
     })
     // Listen for ai response chunks
     let isStreaming = false;
     socket.on('agent_chunk', (token)=>{
       if (!isStreaming) {
         dispatch(startAIStreaming());
+        setResponseLoading(true);
         isStreaming = true;
       }
       dispatch(updateAIStreaming(token));
@@ -100,6 +115,7 @@ function Chat() {
       console.log("Final Transcript:", data.text);
       // Dispatch action to update final transcript
       dispatch(endLiveTranscript(data.text));
+      setTranscribeLoading(false)
       socket.emit('user_message', {message: data.text, conversationId: data.conversationId, mode:'voice'});
     });
 
@@ -117,6 +133,7 @@ function Chat() {
       }
       audioRef.current = new Audio(url);
       audioRef.current.play();
+      setResponseLoading(false)
     })
   }, [])
 
@@ -178,7 +195,7 @@ function Chat() {
             socket.emit('voice:start', {conversationId});
 
             dispatch(startLiveTranscript());
-
+            setTranscribeLoading(true)
             // Push recorded audio chunk into audioChunkRef array when data is available.
             mediaRecorder.ondataavailable = (event)=>{
                 if (event.data.size>0) {
@@ -228,8 +245,8 @@ function Chat() {
         {
           messages.map((message, idx)=>(
             message.role==='user'?
-            (<div className="user-message" key={idx}>{message.content}</div>):
-            (<div className="ai-message" key={idx}><ReactMarkdown>{message.content}</ReactMarkdown></div>)
+            (<div className="user-message" key={idx}>{message.content}{idx===messages.length-1 && transcribeLoading && <div className="loading-block"></div>}</div>):
+            (<div className="ai-message" key={idx}>{message.content}{idx===messages.length-1 && responseLoading && <div className="loading-block"></div>}</div>)
           ))
         }
         {loading && <div className="typing-container">
@@ -250,7 +267,7 @@ function Chat() {
         isVoiceMode?
         (<div className="input-form">
           <div className="audio-wave">{isRecording && <LoadingComponent text="Listening"/>}</div>
-          <button className="chat-button" disabled={loading} onClick={handleRecordingToggle}>{isRecording?<LuCircleStop />:<LuMic/>}</button>
+          <button className="chat-button" disabled={!conversationId} onClick={handleRecordingToggle}>{isRecording?<LuCircleStop />:<LuMic/>}</button>
         </div>):
         (<form onSubmit={handleOnSubmit} className="input-form">
           <input type="text" value={text} onChange={handleOnChange} name="query" placeholder="Ask question" className="query-input" />

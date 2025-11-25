@@ -237,6 +237,25 @@
     color: #4c5153;
     animation: blink 0.5s ease-in-out infinite alternate;
 }
+.loading-block{
+    display: inline-block;
+    width: 0.5rem;
+    height: 1.2rem;
+    background-color: #333;
+    transform: translateY(0.2rem);
+    animation: blink 0.5s infinite ease-in-out alternate;
+}
+.response-loading{
+    animation: fade 0.5s infinite ease-in-out alternate;
+}
+@keyframes fade {
+        0% {
+            opacity: 0.2;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
 @keyframes blink {
     from{
         opacity: 0;

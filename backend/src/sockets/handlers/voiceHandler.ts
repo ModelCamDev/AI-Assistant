@@ -4,14 +4,19 @@ import { generateTextToSpeech, getTextToSpeech, transcribeAndStream } from "../.
 
 const buffersMap = new Map();
 export function voiceHandler(socket: Socket){
+    socket.on('conversation:init', async()=>{
+        const conversation = await conversationService.createConversation();
+        socket.emit('conversation_created', conversation._id.toString());
+    })
     // Create conversation if not created.
     socket.on('voice:start', async ({ conversationId }) => {
         let finalConversationId = conversationId;
         try {
             if (!conversationId) {
-                const conversation = await conversationService.createConversation();
-                finalConversationId = conversation._id.toString();
-                socket.emit('conversation_created', conversation._id.toString());
+                // const conversation = await conversationService.createConversation();
+                // finalConversationId = conversation._id.toString();
+                // socket.emit('conversation_created', conversation._id.toString());
+                console.log("ConversationId not found on voice:start");
             }
             buffersMap.set(finalConversationId, []);
         } catch (error) {
