@@ -21,7 +21,7 @@ export const sendEmail = async (to: string, subject: string, body: string) => {
     from: `AI Assistant <${process.env.EMAIL_USER}>`,
     to: to,
     subject: subject,
-    text: body,
+    html: body,
   };
 
   try {
