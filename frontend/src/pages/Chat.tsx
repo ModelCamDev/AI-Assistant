@@ -17,7 +17,7 @@ function Chat() {
   const {messages, loading, conversationId} = useAppSelector((state)=>state.chat);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
+  const textModeRef = useRef<boolean>(false);
 // Handle welcome message
   const dispatch = useAppDispatch();
   useEffect(()=>{
@@ -92,7 +92,10 @@ function Chat() {
     // Streaming ended
     socket.on('agent_complete', ()=>{
       console.log('Full resposne recieved from AI')
-      isStreaming = false
+      isStreaming = false;
+      if (textModeRef.current) {
+        setResponseLoading(false)
+      }
     })
 
     return ()=>{
@@ -146,7 +149,13 @@ function Chat() {
     }
   }
   useEffect(()=>{
-    scrollToBottom()
+    const handle = setTimeout(()=>{
+      scrollToBottom();
+    }, 50)
+
+    return ()=>{
+      clearTimeout(handle)
+    }
   },[messages, loading])
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
     setText(e.target.value);
@@ -259,6 +268,7 @@ function Chat() {
         <button className="chat-button" onClick={()=>{
           const socket = getSocket();
           socket.emit('ping_check');
+          textModeRef.current = !textModeRef.current
           setIsVoiceMode(prev=>!prev)
           }}>
           {isVoiceMode?<LuKeyboard title="Text Mode" />:<LuAudioLines title="Voice Mode"/>}
