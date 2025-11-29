@@ -27,7 +27,11 @@ export function voiceHandler(socket: Socket){
     socket.on('voice:chunk', ({conversationId, audioBase64})=>{
         try {
             const buf = Buffer.from(audioBase64, 'base64');
-            buffersMap.get(conversationId)?.push(buf);
+            if (!buffersMap.get(conversationId)) {
+                buffersMap.set(conversationId, [buf]);
+            }else{
+                buffersMap.get(conversationId)?.push(buf);
+            }
         } catch (error) {
             console.log('Error in getting voice chunk');
         }
@@ -38,7 +42,7 @@ export function voiceHandler(socket: Socket){
         try {
             const buffers = buffersMap.get(conversationId)
             if (!buffers || buffers.length === 0) {
-                console.log("No voice chunks recorded.");
+                console.log("No voice chunks recorded.", conversationId);
                 return
             }
             const fullBuffers = Buffer.concat(buffers);
