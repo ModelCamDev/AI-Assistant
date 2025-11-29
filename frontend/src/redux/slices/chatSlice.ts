@@ -62,6 +62,13 @@ const chatSlice = createSlice({
         },
         addWelcomeMessage: (state, action)=>{
           state.messages = [{role: 'ai', content: action.payload}]
+        },
+        removeEmptyUserMessage: (state)=>{
+          // const lastmessage = state.messages[state.messages.length - 1];
+          // if (lastmessage && lastmessage.role === 'user' && lastmessage.content === '') {
+          //   state.messages.pop();
+          // }
+          state.messages  = state.messages.filter(msg=> msg.content!=='');
         }
     }
 });
@@ -74,6 +81,7 @@ export const { addLocalMessage,
   startLiveTranscript, 
   updateLiveTranscript, 
   endLiveTranscript,
-  addWelcomeMessage
+  addWelcomeMessage,
+  removeEmptyUserMessage
  } = chatSlice.actions;
 export default chatSlice.reducer;
