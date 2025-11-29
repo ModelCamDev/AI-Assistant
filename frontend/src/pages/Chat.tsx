@@ -13,6 +13,7 @@ import {
   addLocalMessage,
   addWelcomeMessage,
   endLiveTranscript,
+  removeEmptyUserMessage,
   setConversationId,
   startAIStreaming,
   startLiveTranscript,
@@ -23,34 +24,64 @@ import {
 import LoadingComponent from "../components/User/LoadingComponent";
 import { getSocket, initSocket } from "../sockets/socket";
 
-//  Chat Component
 function Chat() {
-  //  UI State
+  // UI state
   const [isVoiceMode, setIsVoiceMode] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [transcribeLoading, setTranscribeLoading] = useState(false);
   const [responseLoading, setResponseLoading] = useState(false);
   const [text, setText] = useState("");
+  const [isActivelyListening, setIsActivelyListening] = useState(false);
 
- //  Redux State
+  // Redux state
   const dispatch = useAppDispatch();
   const { messages, loading, conversationId } = useAppSelector(
     (state) => state.chat
   );
 
-  //  Refs
+  // Refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const textModeRef = useRef(false);
   const chatHistoryRef = useRef<HTMLDivElement>(null);
+  const conversationIdRef = useRef<string | null>(null);
 
-  //  Component Mount / Unmount
+  const recognitionRef = useRef<any>(null);
+  const speechDetectedRef = useRef(false);
+  const manuallyStoppedRef = useRef(false);
+  const silenceTimerRef = useRef<any>(null);
+
+  /**
+   * Initialize Web Speech API recognition (if available) and log mount/unmount.
+   * Stores a recognition instance in recognitionRef for use by startListening().
+   */
   useEffect(() => {
     console.log("Chat mounted");
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+      recognitionRef.current = recognition;
+    } else {
+      console.warn("Your browser does not support SpeechRecognition");
+    }
     return () => console.log("Chat unmounted");
   }, []);
 
-  // SOCKET INITIALIZATION + WELCOME MESSAGE HANDLING
+  /**
+   * Keep conversationIdRef synchronized with the Redux conversationId.
+   */
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
+
+  /**
+   * Initialize socket connection, send welcome TTS on first visit,
+   * manage conversation creation and AI streaming events.
+   */
   useEffect(() => {
     const socket = initSocket();
     const welcomeMessage = `Hello! Welcome to Modelcam Technologies.   
@@ -59,7 +90,6 @@ function Chat() {
     const hasWelcomed = sessionStorage.getItem("hasWelcomedUser");
     const savedConversationId = sessionStorage.getItem("conversationId");
 
-    // First-time welcome
     if (!hasWelcomed) {
       sessionStorage.setItem("hasWelcomedUser", "true");
       console.log("[Socket] Sending welcome TTS");
@@ -73,21 +103,18 @@ function Chat() {
       if (savedConversationId) dispatch(setConversationId(savedConversationId));
     }
 
-    /* -------------------- TTS WELCOME ----------------------- */
     socket.on("tts:welcome", ({ audioBase64 }) => {
       playBase64Audio(audioBase64);
       dispatch(addWelcomeMessage(welcomeMessage));
       setResponseLoading(false);
     });
 
-    /* -------------------- Conversation ID ----------------------- */
     socket.on("conversation_created", (id) => {
       console.log("[Socket] Conversation created:", id);
       dispatch(setConversationId(id));
       sessionStorage.setItem("conversationId", id);
     });
 
-    /* -------------------- AI Stream Chunks ----------------------- */
     let isStreaming = false;
 
     socket.on("agent_chunk", (token) => {
@@ -110,16 +137,16 @@ function Chat() {
     };
   }, []);
 
-  //  SPEECH-TO-TEXT EVENTS
+  /**
+   * Register socket handlers for partial/final speech transcripts and TTS completion.
+   */
   useEffect(() => {
     const socket = getSocket();
 
-    /* -------------------- Partial Transcript ------------------- */
     socket.on("transcribe_partial", (data) => {
       dispatch(updateLiveTranscript(data.text));
     });
 
-    /* -------------------- Final Transcript ---------------------- */
     socket.on("transcribe_complete", (data) => {
       dispatch(endLiveTranscript(data.text));
       setTranscribeLoading(false);
@@ -131,14 +158,15 @@ function Chat() {
       });
     });
 
-    /* -------------------- TTS Complete -------------------------- */
     socket.on("tts:complete", ({ audioBase64 }) => {
       playBase64Audio(audioBase64);
       setResponseLoading(false);
     });
   }, []);
 
-  //  AUTO SCROLL ON MESSAGE UPDATE
+  /**
+   * Scroll the chat history to the bottom.
+   */
   const scrollToBottom = () => {
     if (!chatHistoryRef.current) return;
     chatHistoryRef.current.scrollTo({
@@ -147,12 +175,17 @@ function Chat() {
     });
   };
 
+  /**
+   * Auto-scroll effect: run scrollToBottom when messages or loading change.
+   */
   useEffect(() => {
     const t = setTimeout(scrollToBottom, 50);
     return () => clearTimeout(t);
   }, [messages, loading]);
 
-  //  HELPER: PLAY BASE64 AUDIO (TTS)
+  /**
+   * Play a base64-encoded TTS audio blob and auto-start recording when playback ends.
+   */
   const playBase64Audio = (base64: string) => {
     try {
       const byteString = atob(base64);
@@ -171,12 +204,20 @@ function Chat() {
 
       audioRef.current = new Audio(url);
       audioRef.current.play();
+
+      audioRef.current.onended = () => {
+        console.log("TTS Finished playing -> Calling startRecording()");
+        startRecording();
+      };
     } catch (err) {
       console.error("Failed to play audio:", err);
     }
   };
 
-  //  VOICE RECORDING — START & STOP
+  /**
+   * Start microphone recording, emit voice:start, stream chunks to server,
+   * and start speech recognition for live transcription.
+   */
   const startRecording = async () => {
     try {
       if (audioRef.current) {
@@ -192,7 +233,7 @@ function Chat() {
       mediaRecorderRef.current = mediaRecorder;
 
       const socket = getSocket();
-      socket.emit("voice:start", { conversationId });
+      socket.emit("voice:start", { conversationId: conversationIdRef.current });
 
       dispatch(startLiveTranscript());
       setTranscribeLoading(true);
@@ -205,7 +246,7 @@ function Chat() {
           if (typeof reader.result === "string") {
             const base64 = reader.result.split(",")[1];
             socket.emit("voice:chunk", {
-              conversationId,
+              conversationId: conversationIdRef.current,
               audioBase64: base64,
             });
           }
@@ -216,32 +257,164 @@ function Chat() {
       mediaRecorder.start(250);
       setIsRecording(true);
       console.log("[Mic] Recording started");
+      startListening();
     } catch (error) {
       console.error("Mic access error:", error);
     }
   };
 
+  /**
+   * Stop recording/recognition, emit voice:stop and reset recording state.
+   */
+  const processVoiceInput = () => {
+    console.log("[Listen] Processing voice input");
+    setIsActivelyListening(false);
+
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    if (mediaRecorderRef.current) {
+      try {
+        mediaRecorderRef.current.stop();
+        mediaRecorderRef.current.stream.getTracks().forEach((t) => t.stop());
+        mediaRecorderRef.current = null;
+      } catch (err) {
+        console.error("[Mic] Error stopping:", err);
+      }
+    }
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+    }
+
+    getSocket().emit("voice:stop", {
+      conversationId: conversationIdRef.current,
+    });
+
+    speechDetectedRef.current = false;
+    setIsRecording(false);
+  };
+
+  /**
+   * Start Web Speech API recognition, handle interim/final results and silence timer.
+   */
+  const startListening = () => {
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      return;
+    }
+    try {
+      recognition.stop();
+    } catch (error) {}
+
+    recognition.onstart = () => {
+      console.log("[Listen] Recognition started - Now actively listening");
+      setIsActivelyListening(true);
+    };
+
+    setTimeout(() => {
+      recognition.start();
+    }, 100);
+
+    recognition.onresult = (event: any) => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+
+      if (!speechDetectedRef.current) {
+        speechDetectedRef.current = true;
+        console.log("[Listen] Speech detected!");
+      }
+
+      const current = event.resultIndex;
+      const transcript = event.results[current][0].transcript;
+
+      console.log(
+        "[Listen] Transcript:",
+        transcript,
+        "(final:",
+        event.results[current].isFinal + ")"
+      );
+
+      silenceTimerRef.current = setTimeout(() => {
+        if (speechDetectedRef.current) {
+          console.log("[Listen] 2 seconds of silence detected → processing");
+          processVoiceInput();
+        }
+      }, 1500);
+    };
+
+    recognition.onend = () => {
+      setIsActivelyListening(false);
+
+      if (!manuallyStoppedRef.current && !speechDetectedRef.current) {
+        console.log("[Listen] Recognition ended, restarting...");
+        setTimeout(() => {
+          try {
+            recognition.start();
+          } catch {}
+        }, 350);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("[Listen] Error:", event.error);
+      setIsActivelyListening(false);
+
+      if (event.error === "no-speech" && !manuallyStoppedRef.current) {
+        console.log("[Listen] No speech detected, restarting recognition...");
+        setTimeout(() => {
+          try {
+            recognition.start();
+          } catch {}
+        }, 350);
+      }
+    };
+  };
+
+  /**
+   * Stop the media recorder and speech recognition, clear timers and update UI flags.
+   */
   const stopRecording = () => {
     try {
       if (!mediaRecorderRef.current) return;
 
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach((t) => t.stop());
-      getSocket().emit("voice:stop", { conversationId });
 
       mediaRecorderRef.current = null;
       setIsRecording(false);
-
+      setIsActivelyListening(false);
+      setTimeout(() => {
+        setTranscribeLoading(false);
+        dispatch(removeEmptyUserMessage());
+      }, 2000);
+      recognitionRef.current.stop();
       console.log("[Mic] Recording stopped");
     } catch (error) {
       console.error("Error stopping recording:", error);
     }
   };
 
-  //  UI HANDLERS
+  /**
+   * Update controlled text input value.
+   */
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setText(e.target.value);
 
+  /**
+   * Send text message to server and add local message entry.
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -253,7 +426,7 @@ function Chat() {
     const socket = getSocket();
     socket.emit("user_message", {
       message: text,
-      conversationId,
+      conversationId: conversationIdRef.current,
       mode: "text",
     });
 
@@ -261,11 +434,22 @@ function Chat() {
     setText("");
   };
 
+  /**
+   * Toggle manual recording and mark manual stop state.
+   */
   const toggleRecording = () => {
-    if (isRecording) stopRecording();
-    else startRecording();
+    if (isRecording) {
+      manuallyStoppedRef.current = true;
+      stopRecording();
+    } else {
+      manuallyStoppedRef.current = false;
+      startRecording();
+    }
   };
 
+  /**
+   * Toggle between voice and text mode and notify server.
+   */
   const toggleMode = () => {
     const socket = getSocket();
     socket.emit("ping_check");
@@ -274,10 +458,8 @@ function Chat() {
     setIsVoiceMode((prev) => !prev);
   };
 
-  //RENDER UI
   return (
     <div className="chat-view">
-      {/* Chat Messages History */}
       <div className="chat-history" ref={chatHistoryRef}>
         {messages.map((msg, idx) =>
           msg.role === "user" ? (
@@ -298,20 +480,15 @@ function Chat() {
         )}
       </div>
 
-      {/* Input Bar */}
       <div className="chat-actions">
         <button className="chat-button" onClick={toggleMode}>
-          {isVoiceMode ? (
-            <LuKeyboard title="Text Mode" />
-          ) : (
-            <LuAudioLines title="Voice Mode" />
-          )}
+          {isVoiceMode ? <LuKeyboard title="Text Mode" /> : <LuAudioLines title="Voice Mode" />}
         </button>
 
         {isVoiceMode ? (
           <div className="input-form">
             <div className="audio-wave">
-              {isRecording && <LoadingComponent text="Listening" />}
+              {isRecording && isActivelyListening && <LoadingComponent text="Listening" />}
             </div>
 
             <button
