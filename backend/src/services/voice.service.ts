@@ -13,7 +13,7 @@ export const transcribeAndStream = async (fullBuffer: Buffer, socket: Socket, co
             file: webmFile,
             model: 'gpt-4o-mini-transcribe',
             language: 'en',
-            temperature: 0.5,
+            temperature: 0.3,
             stream: true
         });
         let partial = '';
