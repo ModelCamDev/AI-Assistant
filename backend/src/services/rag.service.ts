@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path'
 import { TextLoader } from "@langchain/classic/document_loaders/fs/text";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
@@ -10,7 +11,7 @@ import { Document } from '@langchain/core/documents';
 import { hashString } from '../utils/hash';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { PromptTemplate } from '@langchain/core/prompts';
-import { StringOutputParser } from '@langchain/core/output_parsers'
+import { StringOutputParser } from '@langchain/core/output_parsers';
 
 export class RAGService {
     // Identify file type and return extracted content
@@ -121,6 +122,16 @@ export class RAGService {
         console.log(`Deleting all vectors with hash: ${hashValue}`);
         try {
             await namespace.deleteMany({ hash: hashValue });
+            // Deleting actual file from disc
+            const filePath = path.join(__dirname, '../uploads/', fileName);
+            if (fs.existsSync(filePath)) {
+                fs.unlink(filePath, (err) => {
+                    if (err) throw err;
+                    console.log(filePath, 'was deleted');
+                })
+            } else {
+                console.log('File does not exists:', filePath);
+            }
             return true;
         } catch (error) {
             console.error(`Error deleting vectors for source: ${fileName}`, error);
