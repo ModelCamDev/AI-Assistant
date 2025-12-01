@@ -206,8 +206,10 @@ function Chat() {
       audioRef.current.play();
 
       audioRef.current.onended = () => {
-        console.log("TTS Finished playing -> Calling startRecording()");
-        startRecording();
+        if (!textModeRef.current) {
+          console.log("TTS Finished playing -> Calling startRecording()");
+          startRecording();
+        }
       };
     } catch (err) {
       console.error("Failed to play audio:", err);
@@ -398,7 +400,7 @@ function Chat() {
       setTimeout(() => {
         setTranscribeLoading(false);
         dispatch(removeEmptyUserMessage());
-      }, 2000);
+      }, 1500);
       recognitionRef.current.stop();
       console.log("[Mic] Recording stopped");
     } catch (error) {
@@ -453,9 +455,13 @@ function Chat() {
   const toggleMode = () => {
     const socket = getSocket();
     socket.emit("ping_check");
-
+    if (!textModeRef.current) {
+      manuallyStoppedRef.current = true;
+      stopRecording();
+    }
     textModeRef.current = !textModeRef.current;
     setIsVoiceMode((prev) => !prev);
+    
   };
 
   return (
