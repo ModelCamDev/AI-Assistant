@@ -7,7 +7,7 @@ import { useState } from "react";
 const AdminLogin = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const [formData, setFormData] = useState<{email:string, password: string}>({email: 'aditya@example.com', password: 'Aditya'});
+    const [formData, setFormData] = useState<{email:string, password: string}>({email: '', password: ''});
     const handleInputOnChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
       setFormData(prevState=>
       ({...prevState, [e.target.name]:e.target.value})
