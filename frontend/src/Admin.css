@@ -175,6 +175,34 @@
     flex-direction: column;
     
 }
+.lead-action-container{
+    display: flex;
+    gap: 0.5rem;
+}
+.lead-status{
+    all: unset;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.2rem;
+    font-size: 0.7rem;
+    text-transform: capitalize;
+    cursor: pointer;
+}
+.lead-status.new{
+    background-color: red;
+    color: white;
+}
+.lead-status.replied{
+    background-color: orange;
+    color: white;
+}
+.lead-status.converted{
+    background-color: #6EA944;
+    color: white;
+}
+.lead-status.cancel{
+    background-color: #535353;
+    color: white;
+}
 
 /* Lead Details Page */
 .lead-details{

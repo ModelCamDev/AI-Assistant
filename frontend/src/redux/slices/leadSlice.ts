@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllLeadsThunk } from "../thunks/leadThunk";
+import { getAllLeadsThunk, updateLeadThunk } from "../thunks/leadThunk";
 
 interface Lead{
     _id: string;
@@ -35,6 +35,24 @@ const leadSlice = createSlice({
             state.leads = action.payload;
         })
         .addCase(getAllLeadsThunk.rejected, (state, action)=>{
+            state.loading = false;
+            state.error = action.payload as string;
+        })
+        .addCase(updateLeadThunk.pending, (state)=>{
+            state.loading = true;
+        })
+        .addCase(updateLeadThunk.fulfilled, (state, action)=>{
+            state.loading = false;
+            if (action.payload) {
+                state.leads = state.leads.map(lead=>{
+                    if(lead._id===action.payload?.id){
+                        lead.status = action.payload.status
+                    }
+                    return lead
+                })
+            }
+        })
+        .addCase(updateLeadThunk.rejected, (state, action)=>{
             state.loading = false;
             state.error = action.payload as string;
         })
