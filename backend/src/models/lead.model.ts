@@ -15,6 +15,10 @@ const LeadSchema = new mongoose.Schema({
     enum: ["new", "replied", 'converted'],
     default: "new",
   },
+  updatedAt:{
+    type: Date,
+    default: Date.now,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

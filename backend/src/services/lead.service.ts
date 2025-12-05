@@ -26,7 +26,8 @@ class LeadService {
         { 
           $set: {
             conversationId: leadData.conversationId,
-            status: "new"
+            status: "new", 
+            updatedAt: new Date()
           }
         },
         { 
@@ -179,7 +180,7 @@ Do not include any headers, footers, or labels like “Message:” or “Summary
   // Get all Leads
   async getAllLeads(): Promise<ILead[]>{
     try {
-        const leads = await Lead.find();
+        const leads = await Lead.find().sort({ createdAt: -1});
         return leads.map(lead=>({
             _id: lead._id,
             email: lead.email,
@@ -197,7 +198,7 @@ Do not include any headers, footers, or labels like “Message:” or “Summary
   // Update Lead Status
   async updateLeadStatus(leadId: string, status: string){
     try {
-      const updatedLead = await Lead.findByIdAndUpdate(leadId, {status: status}, {new: true});
+      const updatedLead = await Lead.findByIdAndUpdate(leadId, {status: status, updatedAt: new Date()}, {new: true});
       return updatedLead;
     } catch (error) {
       if (error instanceof Error) {
