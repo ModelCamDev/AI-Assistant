@@ -259,7 +259,7 @@
     grid-template-columns: 4fr 1fr 2fr;
     background-color: white;
 }
-.document-list-item span:last-child{
+.document-list-item button:last-child, .document-list-item span:last-child{
     justify-self: end;
     align-self: center;
 }
@@ -276,12 +276,19 @@
 }
 
 .delete-document{
+    all: unset;
+    display: inline-block;
+    width: max-content;
     background-color: red;
     color: white;
     padding: 0.2rem 0.5rem;
     border-radius: 0.2rem;
     font-size: 0.7rem;
     cursor: pointer;
+}
+.delete-document:disabled{
+    background-color: #a1a1a1;
+    cursor: not-allowed;
 }
 .cancel-delete-document{
     background-color: #535353;

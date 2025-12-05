@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Document } from "../../redux/slices/documentSlice";
+import { useAppSelector } from "../../redux/app/hooks";
 
 interface DocumentProps{
     document: Document;
@@ -8,9 +9,17 @@ interface DocumentProps{
 
 const DocumentListItem = ({document, handleDeleteDocument}: DocumentProps) => {
     const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
+    const { loading } = useAppSelector((state)=>state.document);
+    const [isLoading, setIsLoading] = useState(false);
+    useEffect(()=>{
+        if (isLoading && !loading) {
+            setIsLoading(false)
+        }
+    },[ isLoading, loading ])
     const handleConfirmDelete = ()=>{
         handleDeleteDocument(document.filename);
-        setIsConfirmed(false)
+        setIsConfirmed(false);
+        setIsLoading(true)
     }
     const handleCancelDelete = ()=>{
         setIsConfirmed(false)
@@ -28,7 +37,7 @@ const DocumentListItem = ({document, handleDeleteDocument}: DocumentProps) => {
                 <span className="delete-document" onClick={handleConfirmDelete}>Confirm</span>
                 <span className="cancel-delete-document" onClick={handleCancelDelete}>Cancel</span>
             </span>:
-            <span className="delete-document" onClick={handleDelete}>Delete</span>
+            <button className="delete-document" disabled={isLoading} onClick={handleDelete}>{isLoading?'Deleting':'Delete'}</button>
             }
         </div>
     )
