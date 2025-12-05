@@ -22,7 +22,7 @@ function LeadItem({_id: id, email, status, date}:props){
         if (updateLoading && !loading) {
             setUpdateLoading(false)
         }
-    }, [updateLoading, loading]);
+    }, [loading]);
 
     const handleOnclick = ()=>{
         navigate('/admin/lead-details', {state: {email, status}})

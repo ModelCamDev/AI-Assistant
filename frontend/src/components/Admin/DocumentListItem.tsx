@@ -15,7 +15,7 @@ const DocumentListItem = ({document, handleDeleteDocument}: DocumentProps) => {
         if (isLoading && !loading) {
             setIsLoading(false)
         }
-    },[ isLoading, loading ])
+    },[ loading ])
     const handleConfirmDelete = ()=>{
         handleDeleteDocument(document.filename);
         setIsConfirmed(false);
