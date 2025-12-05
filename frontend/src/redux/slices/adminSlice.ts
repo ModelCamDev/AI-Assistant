@@ -14,7 +14,7 @@ interface AdminState {
 }
 
 const initialState: AdminState = {
-    isLoggedIn: !!localStorage.getItem('token'),
+    isLoggedIn: !!sessionStorage.getItem('token'),
     admin: null,
     loading: false,
     error: null,
@@ -27,7 +27,7 @@ const adminSlice = createSlice({
         logoutAdmin: (state) => {
             state.isLoggedIn = false;
             state.admin = null;
-            localStorage.removeItem('token')
+            sessionStorage.removeItem('token')
             toast.success("You've been logged out!")
         }
     },

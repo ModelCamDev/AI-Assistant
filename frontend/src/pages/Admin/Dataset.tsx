@@ -21,7 +21,7 @@ const Dataset = () => {
                 <NavLink to={'upload'} className="upload-nav">Upload Data</NavLink>
             </div>
             <div className="document-list">
-                {documents.map((doc, idx)=><DocumentListItem key={idx} document={doc} handleDeleteDocument={handleDeleteDocument}/>)}
+                {documents?.map((doc, idx)=><DocumentListItem key={idx} document={doc} handleDeleteDocument={handleDeleteDocument}/>)}
             </div>
         </div>
     )

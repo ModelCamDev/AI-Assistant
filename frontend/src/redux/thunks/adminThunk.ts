@@ -29,7 +29,7 @@ export const adminLoginThunk = createAsyncThunk<AdminLoginResponse, LoginCredent
     try {
         const {data} = await axiosInstance.post('/api/user/login', credentials);
         const {_id:id, email, role} = data.user;
-        localStorage.setItem('token', data.token);
+        sessionStorage.setItem('token', data.token);
         toast.success("You've successfully logged in")
         return {admin: {id , email, role}, token: data.token} as AdminLoginResponse;
     } catch (error: any) {
