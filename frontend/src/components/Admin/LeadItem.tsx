@@ -8,9 +8,10 @@ interface props{
     _id: string;
     email: string;
     status: string;
+    date: Date;
 }
 // Change '_id: _' to '_id' when _id is needed
-function LeadItem({_id: id, email, status}:props){
+function LeadItem({_id: id, email, status, date}:props){
     const [isChanging, setIsChanging] = useState(false);
     const [updateLoading, setUpdateLoading] = useState(false);
     const {loading} = useAppSelector((state)=>state.lead)
@@ -46,14 +47,15 @@ function LeadItem({_id: id, email, status}:props){
     }
     return <div onClick={handleOnclick} className="lead-item">
         <div className="lead-email">{email}</div>
+        <div className="lead-date">{!isChanging && (new Date(date).toLocaleDateString('en-GB',{day:'2-digit', month:'short'}))}</div>
         {
             isChanging ?
-                <span className="lead-action-container">
+                <div className="lead-action-container">
                     <button className="lead-status new" onClick={(e)=>{handleStatusChange(e, 'new')}}>New</button>
                     <button className="lead-status replied" onClick={(e)=>{handleStatusChange(e, 'replied')}}>Replied</button>
                     <button className="lead-status converted" onClick={(e)=>{handleStatusChange(e, 'converted')}}>Converted</button>
                     <button className="lead-status cancel" onClick={handleCancel}>Cancel</button>
-                </span> :
+                </div> :
                 <button className={`lead-status ${status}`} disabled={updateLoading} onClick={handleChangeRequest}>{updateLoading?'Updating':status}</button>
         }
     </div>

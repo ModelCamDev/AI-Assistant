@@ -1,8 +1,14 @@
+import { useEffect } from "react";
 import LeadItem from "../../components/Admin/LeadItem"
-import { useAppSelector } from "../../redux/app/hooks"
+import { useAppDispatch, useAppSelector } from "../../redux/app/hooks"
+import { getAllLeadsThunk } from "../../redux/thunks/leadThunk";
 
 function Leads() {
-    const {leads} = useAppSelector((state)=>state.lead)
+    const {leads} = useAppSelector((state)=>state.lead);
+    const dispatch = useAppDispatch();
+    useEffect(()=>{
+        dispatch(getAllLeadsThunk());
+      },[]);
   return (
     <div className="dashboard-page">
         <h1>Leads</h1>
@@ -21,7 +27,7 @@ function Leads() {
             </div>
         </div>
         <div className="lead-list">
-            {leads.map(lead=><LeadItem key={lead._id} _id={lead._id} email={lead.email} status={lead.status}/>)}
+            {leads.map(lead=><LeadItem key={lead._id} _id={lead._id} email={lead.email} status={lead.status} date={lead.createdAt}/>)}
         </div>
     </div>
   )

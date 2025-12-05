@@ -5,6 +5,7 @@ interface Lead{
     _id: string;
     email: string;
     status: 'new' | 'replied' | 'converted';
+    createdAt: Date;
 }
 
 interface LeadState{
