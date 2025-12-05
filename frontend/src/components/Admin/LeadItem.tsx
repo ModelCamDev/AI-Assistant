@@ -47,7 +47,7 @@ function LeadItem({_id: id, email, status, date}:props){
     }
     return <div onClick={handleOnclick} className="lead-item">
         <div className="lead-email">{email}</div>
-        <div className="lead-date">{!isChanging && (new Date(date).toLocaleDateString('en-GB',{day:'2-digit', month:'short'}))}</div>
+        <div className="lead-date">{!isChanging && `${(new Date(date).toLocaleDateString('en-GB',{day:'2-digit', month:'short'}))} | ${(new Date(date).toLocaleTimeString('en-GB',{hour:'2-digit', minute:'2-digit', hour12: true}))}`}</div>
         {
             isChanging ?
                 <div className="lead-action-container">
