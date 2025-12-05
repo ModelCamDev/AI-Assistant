@@ -12,7 +12,8 @@ export const generateLead = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const updateLeadStatus = async (req: Request, res: Response, next: NextFunction)=>{
-  const {leadId, status} = req.body;
+  const {status} = req.body;
+  const {id: leadId} = req.params;
   try {
     const updatedLead = await leadService.updateLeadStatus(leadId, status);
     if (!updatedLead){

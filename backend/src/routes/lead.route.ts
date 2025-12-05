@@ -5,7 +5,7 @@ const router = Router();
 
 // Sample lead route
 router.post('/', generateLead);
-router.patch('/status', updateLeadStatus);
+router.patch('/:id', updateLeadStatus);
 router.get('/all', getAllLeads);
 router.get('/filter/:status', filterLeadsByStatus);
 

@@ -12,7 +12,7 @@ const LeadSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["new", "replied"],
+    enum: ["new", "replied", 'converted'],
     default: "new",
   },
   createdAt: {
