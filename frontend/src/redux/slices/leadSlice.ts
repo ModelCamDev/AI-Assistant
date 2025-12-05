@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { getAllLeadsThunk, updateLeadThunk } from "../thunks/leadThunk";
 
-interface Lead{
+export interface Lead{
     _id: string;
     email: string;
     status: 'new' | 'replied' | 'converted';

@@ -148,8 +148,12 @@
     outline: none;
     border: none;
     border-radius: 0.2rem;
-    font-size: 1rem;
+    font-size: 0.9rem;
     cursor: pointer;
+}
+.filter-action option{
+    text-align: start;
+    font-size: 0.8rem;
 }
 /* Lead item */
 .lead-item{
