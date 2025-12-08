@@ -49,6 +49,7 @@ const leadSlice = createSlice({
                 state.leads = state.leads.map(lead=>{
                     if(lead._id===action.payload?.id){
                         lead.status = action.payload.status
+                        lead.updatedAt = new Date()
                     }
                     return lead
                 })
