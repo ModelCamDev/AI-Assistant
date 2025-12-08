@@ -53,6 +53,7 @@ const UploadDataset = () => {
                     <button disabled={loading} onClick={handleUploadDataset}>{loading?"Uploading...":"Upload Files"}</button>
                 </div>
                 <div className="upload-list">
+                    {(!selectedFiles || selectedFiles.length === 0) && <div className="no-data" style={{margin:'auto 0'}}>No documents selected</div>}
                     {selectedFiles && selectedFiles.map((file, idx)=> (
                         <div key={idx} className="file-list-item">
                             {file.name}

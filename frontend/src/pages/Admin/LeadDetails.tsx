@@ -20,10 +20,10 @@ function LeadsDetails() {
                 <span>Name: </span><span>{'Unknown'}</span>
             </div>
             <div className="lead-detail-item">
-                <span>email: </span><span>{email || 'Unknown'}</span>
+                <span>Email: </span><span>{email || 'Unknown'}</span>
             </div>
             <div className="lead-detail-item">
-                <span>status: </span><span>{status || 'Unknown'}</span>
+                <span>Status: </span><span style={{textTransform:'capitalize'}}>{status || 'Unknown'}</span>
             </div>
         </div>
     </div>

@@ -38,6 +38,9 @@ function Leads() {
                 </select>
             </div>
         </div>
+        {
+            (!filteredLeads || filteredLeads.length === 0) && <div className="no-data">No Leads Found</div>
+        }
         <div className="lead-list">
             {filteredLeads.map(lead=><LeadItem key={lead._id} _id={lead._id} email={lead.email} status={lead.status} date={lead.createdAt}/>)}
         </div>

@@ -20,6 +20,7 @@ const Dataset = () => {
                 <h1>Dataset</h1>
                 <NavLink to={'upload'} className="upload-nav">Upload Data</NavLink>
             </div>
+            {(!documents || documents.length === 0) && <div className="no-data">No Documents Uploaded</div>}
             <div className="document-list">
                 {documents?.map((doc, idx)=><DocumentListItem key={idx} document={doc} handleDeleteDocument={handleDeleteDocument}/>)}
             </div>

@@ -160,6 +160,7 @@
     width: 100%;
     display: grid;
     grid-template-columns: 3fr 1fr 2fr;
+    align-items: center;
     padding: 0.5rem 1rem;
     background-color: white;
     border-radius: 0.5rem;
@@ -175,6 +176,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
 }
 .lead-list{
     padding: 1rem;
@@ -424,4 +426,14 @@
     aspect-ratio: 1;
     color: red;
     cursor: pointer;
+}
+.no-data{
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #a1a1a1;
 }

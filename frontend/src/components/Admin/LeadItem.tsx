@@ -39,11 +39,11 @@ function LeadItem({_id: id, email, status, date}:props){
         e.stopPropagation();
         if (updatedStatus!==status) {
             dispatch(updateLeadThunk({id, status: updatedStatus}))
+            setUpdateLoading(true)
         }else{
             // toast.warn('Nothing to update')
         }
         setIsChanging(false);
-        setUpdateLoading(true)
     }
     return <div onClick={handleOnclick} className="lead-item">
         <div className="lead-email">{email}</div>
