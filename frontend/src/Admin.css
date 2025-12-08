@@ -228,6 +228,15 @@
     flex-direction: column;
     gap: 1rem;
 }
+.lead-detail-item{
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    border-bottom: 1px solid #c5c5c5;
+    padding: 0 0 0.7rem 0;
+}
+.lead-details-title{
+    font-weight: 600;
+}
 
 /* Auth Page */
 .auth-head{

@@ -9,9 +9,10 @@ interface props{
     email: string;
     status: string;
     date: Date;
+    updatedDate: Date;
 }
 // Change '_id: _' to '_id' when _id is needed
-function LeadItem({_id: id, email, status, date}:props){
+function LeadItem({_id: id, email, status, date, updatedDate}:props){
     const [isChanging, setIsChanging] = useState(false);
     const [updateLoading, setUpdateLoading] = useState(false);
     const {loading} = useAppSelector((state)=>state.lead)
@@ -25,7 +26,7 @@ function LeadItem({_id: id, email, status, date}:props){
     }, [loading]);
 
     const handleOnclick = ()=>{
-        navigate('/admin/lead-details', {state: {email, status}})
+        navigate('/admin/lead-details', {state: {email, status, date, updatedDate}})
     }
     const handleChangeRequest = (e: React.MouseEvent<HTMLButtonElement>)=>{
         e.stopPropagation();
@@ -47,7 +48,7 @@ function LeadItem({_id: id, email, status, date}:props){
     }
     return <div onClick={handleOnclick} className="lead-item">
         <div className="lead-email">{email}</div>
-        <div className="lead-date">{!isChanging && `${(new Date(date).toLocaleDateString('en-GB',{day:'2-digit', month:'short'}))} | ${(new Date(date).toLocaleTimeString('en-GB',{hour:'2-digit', minute:'2-digit', hour12: true}))}`}</div>
+        <div className="lead-date">{!isChanging && `${(new Date(date).toLocaleTimeString('en-GB',{hour:'2-digit', minute:'2-digit', hour12: true}))} | ${(new Date(date).toLocaleDateString('en-GB',{day:'2-digit', month:'short'}))}`}</div>
         {
             isChanging ?
                 <div className="lead-action-container">

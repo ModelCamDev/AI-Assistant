@@ -10,6 +10,7 @@ export interface ILead {
   conversationId?: Types.ObjectId;
   status: "new" | "replied";
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface LeadInput {
@@ -124,7 +125,8 @@ Do not include any headers, footers, or labels like “Message:” or “Summary
         email: updatedLead.email,
         conversationId: updatedLead.conversationId,
         status: updatedLead.status,
-        createdAt: updatedLead.createdAt
+        createdAt: updatedLead.createdAt,
+        updatedAt: updatedLead.updatedAt
       } as ILead;
     } catch (error) {
       if (error instanceof Error) {
@@ -148,7 +150,8 @@ Do not include any headers, footers, or labels like “Message:” or “Summary
         email: lead.email,
         conversationId: lead.conversationId,
         status: lead.status,
-        createdAt: lead.createdAt
+        createdAt: lead.createdAt,
+        updatedAt: lead.updatedAt
       } as ILead;
     } catch (error) {
       if (error instanceof Error) {
@@ -168,7 +171,8 @@ Do not include any headers, footers, or labels like “Message:” or “Summary
         email: lead.email,
         conversationId: lead.conversationId,
         status: lead.status,
-        createdAt: lead.createdAt
+        createdAt: lead.createdAt,
+        updatedAt: lead.updatedAt
       } as ILead));
     } catch (error) {
       if (error instanceof Error) {
@@ -186,7 +190,8 @@ Do not include any headers, footers, or labels like “Message:” or “Summary
             email: lead.email,
             conversationId: lead.conversationId,
             status: lead.status,
-            createdAt: lead.createdAt
+            createdAt: lead.createdAt,
+            updatedAt: lead.updatedAt
         } as ILead))
     } catch (error) {
         if (error instanceof Error) {

@@ -6,6 +6,7 @@ export interface Lead{
     email: string;
     status: 'new' | 'replied' | 'converted';
     createdAt: Date;
+    updatedAt: Date;
 }
 
 interface LeadState{
